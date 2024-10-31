@@ -1,12 +1,57 @@
-# Brief Application Preview
-For the community of CU Boulder, who seek a creative and nostalgic platform to express themselves, the BoulderSpace app is a social networking site that allows users to customize their profiles and connect with others through school-themed interactions. Unlike modern social media platforms, our product brings back the charm of early Myspace with personalized layouts and the inclusion of a first friend—the school mascot—to foster school pride and community engagement.
-# Team Members
-- Aidan Clopp
-- Cola Ren
-- Gabby
-- Sopy Trann
-- Woolee Han
-# Technology Stack
-- Node.js
-- PostgreSQL
-- HTML5 / CSS / JS
+# *BuffSpace 🦬*
+
+## Description
+
+BuffSpace is a web-based social networking platform exclusively for the CU Boulder community, inspired by the classic MySpace experience. Users can create personal profiles showcasing their major and academic year, with each new user automatically connected to Chip, the school mascot, as their first friend.
+
+The platform features the "BuffCircle" (similar to MySpace's "Top 8"), a campus event calendar, and interest-based groups for majors, clubs, and sports teams. Users can interact through status updates, photos, blog posts, messaging, and forum discussions.
+
+This nostalgic yet modern platform aims to strengthen the CU Boulder community by providing a school-spirit focused social network accessible via web browsers.
+
+## Contributors
+
+   Aidan Clopp
+
+   Sopy Thann
+
+   Gabby Laquindanum
+
+   Woolee Han
+
+   Cola Ren
+
+## Technology Stack
+
+   ### Frontend
+
+      - HTML5
+      - CSS
+      - JavaScript
+      - Bootstrap
+
+   ### Backend
+
+      - Node.js
+      - PostgreSQL
+
+   ### Other Tools
+
+      - Git (Version Control)
+      - Docker (Containerization)
+
+## Prerequisites
+
+   TBD
+
+## Running the Application Locally
+
+   TBD
+
+## Running Tests
+
+   TBD
+
+## Deployment
+
+   TBD
+
