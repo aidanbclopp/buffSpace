@@ -1,0 +1,36 @@
+<header></header>
+<nav class="navbar navbar-expand-sm border-bottom">
+  <div class="container">
+    <button
+      class="navbar-toggler ms-auto"
+      type="button"
+      data-bs-toggle="collapse"
+      data-bs-target="#navbar-collapse"
+      aria-controls="navbar"
+      aria-expanded="false"
+      aria-label="Toggle navigation">
+      <span class="navbar-toggler-icon"></span>
+    </button>
+    <div class="collapse navbar-collapse" id="navbar-collapse">
+      <ul class="navbar-nav me-auto">
+        <li class="nav-item">
+          <a class="nav-link" href="/">Home</a>
+        </li>
+        <li class="nav-item">
+          <a class="nav-link" href="/buffcircle">BuffCircle</a>
+        </li>
+      </ul>
+      <div class="d-flex align-items-center">
+        <div class="nav-item me-3">
+          <a href="/profile">
+            <img src="{{user.profileImage}}" alt="Profile" class="rounded-circle" width="32" height="32">
+          </a>
+        </div>
+        <div class="nav-item">
+          <a class="nav-link" href="/logout">Logout</a>
+        </div>
+      </div>
+    </div>
+  </div>
+</nav>
+</header>
