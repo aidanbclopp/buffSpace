@@ -27,3 +27,18 @@ create table buffspace_main.profile
     last_updated        timestamp default current_timestamp not null
 );
 
+create table buffspace_main.post
+(
+    --
+    post_id    integer
+        constraint post_pk
+            primary key,
+    user_id    integer                             not null
+        constraint post_user_user_id_fk
+            references buffspace_main.user
+            on delete cascade,
+    content    varchar(500),
+    image_url  varchar(255),
+    created_at timestamp default current_timestamp not null
+);
+
