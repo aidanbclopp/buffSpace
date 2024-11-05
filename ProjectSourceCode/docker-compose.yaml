@@ -1,3 +1,4 @@
+version: '3.9'
 services:
   db:
     image: postgres:14
@@ -8,9 +9,8 @@ services:
     expose:
       - '5432'
     volumes:
-      - buffspace:/var/lib/postgresql/data
-      - ./init_data:/docker-entrypoint-initdb.d
-
+      - group-project:/var/lib/postgresql/data
+      - ./src/init_data:/docker-entrypoint-initdb.d
   web:
     image: node:lts
     user: 'node'
@@ -25,4 +25,4 @@ services:
       - ./:/home/node/app
     command: 'npm run start-server-part-b-endpoints'
 volumes:
-  buffspace:
+  group-project:
