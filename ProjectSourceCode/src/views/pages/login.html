@@ -1,0 +1,16 @@
+<div class="container">
+    <form action="/login" method="POST" class="mt-4"> <!-- Added margin-top -->
+        <div class="mb-3"> <!-- Use mb-3 for bottom margin -->
+            <label for="username" class="form-label">Username:</label>
+            <input type="text" class="form-control" id="username" name="username" required>
+        </div>
+        <div class="mb-3"> <!-- Use mb-3 for bottom margin -->
+            <label for="password" class="form-label">Password:</label>
+            <input type="password" class="form-control" id="password" name="password" required>
+        </div>
+        <button type="submit" class="btn btn-primary w-100">Login</button> <!-- Full-width button -->
+    </form>
+    <p class="text-center mt-3"> <!-- registration redirect -->
+        Don't have an account? <a href="/register">Create one</a>
+    </p>
+</div>
