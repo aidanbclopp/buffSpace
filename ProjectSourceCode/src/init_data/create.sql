@@ -61,3 +61,16 @@ create table buffspace_main.comment
     content    varchar(500)                        not null,
     created_at timestamp default current_timestamp not null
 );
+
+create table buffspace_main.friend
+(
+    user_id_1  integer                             not null
+        constraint friend_user_1_user_id_fk
+            references buffspace_main.user
+            on delete cascade,
+    user_id_2  integer                             not null
+        constraint friend_user_2_user_id_fk
+            references buffspace_main.user
+            on delete cascade,
+    created_at timestamp default current_timestamp not null
+);
