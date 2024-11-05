@@ -29,16 +29,32 @@ create table buffspace_main.profile
 
 create table buffspace_main.post
 (
-    --
     post_id    integer
         constraint post_pk
             primary key,
-    user_id    integer                             not null
+    user_id    integer                                not null
         constraint post_user_user_id_fk
             references buffspace_main.user
             on delete cascade,
-    content    varchar(500),
+    content    varchar(500) default ''                not null,
     image_url  varchar(255),
-    created_at timestamp default current_timestamp not null
+    created_at timestamp    default current_timestamp not null
 );
 
+create table buffspace_main.comment
+(
+    --
+    comment_id integer
+        constraint comment_pk
+            primary key,
+    post_id    integer                             not null
+        constraint comment_post_post_id_fk
+            references buffspace_main.post
+            on delete cascade,
+    user_id    integer                             not null
+        constraint comment_post_user_id_fk
+            references buffspace_main.post (user_id)
+            on delete cascade,
+    content    varchar(500)                        not null,
+    created_at timestamp default current_timestamp not null
+);
