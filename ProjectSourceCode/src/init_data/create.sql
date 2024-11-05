@@ -27,7 +27,11 @@ create table buffspace_main.profile
     last_name           varchar(50),
     graduation_year     smallint,
     major               varchar(255),
-    last_updated        timestamp default current_timestamp not null
+    last_updated        timestamp default current_timestamp not null,
+    song_id             integer
+        constraint profile_song_song_id_fk
+            references buffspace_main.song
+            on update cascade on delete set null
 );
 
 create table buffspace_main.post
@@ -73,4 +77,18 @@ create table buffspace_main.friend
             references buffspace_main.user
             on delete cascade,
     created_at timestamp default current_timestamp not null
+);
+
+create table buffspace_main.song
+(
+    song_id           integer
+        constraint song_pk
+            primary key,
+    song_title        varchar(255) not null,
+    song_album        varchar(255),
+    song_artist       varchar(255),
+    spotify_url       varchar(255) not null,
+    spotify_image_url varchar(255) not null,
+    constraint song_ak
+        unique (song_title, song_artist)
 );
