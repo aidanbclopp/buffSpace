@@ -14,7 +14,6 @@ create table buffspace_main.user
 
 create table buffspace_main.profile
 (
-    --
     profile_id          integer
         constraint profile_pk
             primary key,
@@ -24,6 +23,10 @@ create table buffspace_main.profile
             on delete cascade,
     bio                 varchar(255),
     profile_picture_url varchar(255),
+    first_name          varchar(50),
+    last_name           varchar(50),
+    graduation_year     smallint,
+    major               varchar(255),
     last_updated        timestamp default current_timestamp not null
 );
 
