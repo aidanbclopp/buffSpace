@@ -27,11 +27,12 @@ create table buffspace_main.profile
     last_name           varchar(50),
     graduation_year     smallint,
     major               varchar(255),
-    last_updated        timestamp default current_timestamp not null,
     song_id             integer
         constraint profile_song_song_id_fk
-            references buffspace_main.song
-            on update cascade on delete set null
+            references buffspace_main.profile_song
+            on update cascade on delete set null,
+    status              varchar(255),
+    last_updated        timestamp default current_timestamp not null
 );
 
 create table buffspace_main.post
@@ -50,7 +51,6 @@ create table buffspace_main.post
 
 create table buffspace_main.comment
 (
-    --
     comment_id integer
         constraint comment_pk
             primary key,
@@ -59,8 +59,8 @@ create table buffspace_main.comment
             references buffspace_main.post
             on delete cascade,
     user_id    integer                             not null
-        constraint comment_post_user_id_fk
-            references buffspace_main.post (user_id)
+        constraint comment_user_user_id_fk
+            references buffspace_main.user
             on delete cascade,
     content    varchar(500)                        not null,
     created_at timestamp default current_timestamp not null
@@ -68,18 +68,20 @@ create table buffspace_main.comment
 
 create table buffspace_main.friend
 (
-    user_id_1  integer                             not null
+    user_id_1      integer                             not null
         constraint friend_user_1_user_id_fk
             references buffspace_main.user
             on delete cascade,
-    user_id_2  integer                             not null
+    user_id_2      integer                             not null
         constraint friend_user_2_user_id_fk
             references buffspace_main.user
             on delete cascade,
-    created_at timestamp default current_timestamp not null
+    user_1_ranking smallint,
+    user_2_ranking smallint,
+    created_at     timestamp default current_timestamp not null
 );
 
-create table buffspace_main.song
+create table buffspace_main.profile_song
 (
     song_id           integer
         constraint song_pk
