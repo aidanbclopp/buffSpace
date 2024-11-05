@@ -17,12 +17,16 @@ services:
     working_dir: /home/node/app
     environment:
       - NODE_ENV=development
+      - POSTGRES_USER=postgres
+      - POSTGRES_PASSWORD=pwd
+      - POSTGRES_DB=buffspace
+      - SESSION_SECRET=your_secret_key
     depends_on:
       - db
     ports:
       - '3000:3000'
     volumes:
       - ./:/home/node/app
-    command: 'npm run start-server-part-b-endpoints'
+    command: 'node src/index.js'
 volumes:
   buffspace:

@@ -1,3 +1,6 @@
 # Mac files
 .DS_Store
-
+# IDE files
+*.xml
+# Node files
+/ProjectSourceCode/node_modules/

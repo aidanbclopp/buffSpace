@@ -1,7 +1,15 @@
 {
+  "main": "src/index.js",
   "dependencies": {
+    "axios": "^0.21.1",
+    "bcryptjs": "^2.4.3",
+    "body-parser": "^1.19.0",
     "bootstrap": "^5.3.3",
     "bootstrap-icons": "^1.11.3",
-    "handlebars": "^4.7.8"
+    "express": "^4.17.1",
+    "express-handlebars": "^5.3.3",
+    "express-session": "^1.17.1",
+    "handlebars": "^4.7.8",
+    "pg-promise": "^10.15.4"
   }
 }

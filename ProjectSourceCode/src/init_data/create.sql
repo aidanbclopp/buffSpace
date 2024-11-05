@@ -12,6 +12,20 @@ create table buffspace_main.user
     last_login timestamp default current_timestamp not null
 );
 
+create table buffspace_main.profile_song
+(
+    song_id           integer
+        constraint song_pk
+            primary key,
+    song_title        varchar(255) not null,
+    song_album        varchar(255),
+    song_artist       varchar(255),
+    spotify_url       varchar(255) not null,
+    spotify_image_url varchar(255) not null,
+    constraint song_ak
+        unique (song_title, song_artist)
+);
+
 create table buffspace_main.profile
 (
     profile_id          integer
@@ -79,18 +93,4 @@ create table buffspace_main.friend
     user_1_ranking smallint,
     user_2_ranking smallint,
     created_at     timestamp default current_timestamp not null
-);
-
-create table buffspace_main.profile_song
-(
-    song_id           integer
-        constraint song_pk
-            primary key,
-    song_title        varchar(255) not null,
-    song_album        varchar(255),
-    song_artist       varchar(255),
-    spotify_url       varchar(255) not null,
-    spotify_image_url varchar(255) not null,
-    constraint song_ak
-        unique (song_title, song_artist)
 );
