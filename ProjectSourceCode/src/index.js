@@ -67,8 +67,8 @@ app.use(bodyParser.json()); // specify the usage of JSON for parsing request bod
 app.use(
     session({
         secret: process.env.SESSION_SECRET,
-        saveUninitialized: false,
-        resave: false,
+        saveUninitialized: true,
+        resave: true,
     })
 );
 
@@ -79,16 +79,60 @@ app.use(
     })
 );
 
-
-// *****************************************************
-// <!-- Section 4 : API Routes -->
-// *****************************************************
-
-
-// TODO - Include your API routes here
 app.get('/', (req, res) => {
-    res.render('pages/login');
+    res.render('pages/home');
 });
+
+// -------------------------------------  ROUTES for login.hbs   ----------------------------------------------
+const user = {
+  user_id: undefined,
+  username: undefined,
+  password: undefined,
+  created_at: undefined,
+  last_login: undefined,
+};
+
+app.get('/login', (req, res) => {
+  res.render('pages/login');
+});
+
+// Login submission
+app.post('/login', (req, res) => {
+  const username = req.body.username;
+  const password = req.body.password;
+  const query = 'select * from buffspace_main.user where password = $1 LIMIT 1';
+  const values = [password];
+
+  // get the user_id based on the password
+  db.one(query, values)
+    .then(data => {
+      user.user_id = data.user_id;
+      user.username = username;
+      user.password = data.password;
+      user.created_at = data.created_at;
+      user.last_login = data.last_login;
+
+      req.session.user = user;
+      req.session.save();
+
+      res.redirect('/');
+    })
+    .catch(err => {
+      console.log(err);
+      res.redirect('/login');
+    });
+});
+
+// Authentication middleware.
+const auth = (req, res, next) => {
+  if (!req.session.user) {
+    return res.redirect('/login');
+  }
+  next();
+};
+
+app.use(auth);
+
 
 app.get('/register', (req, res) => {
     res.render('pages/signup');
