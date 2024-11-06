@@ -133,7 +133,7 @@ const auth = (req, res, next) => {
 
 app.use(auth);
 
-app.get('/regiseter', (req, res) => {
+app.get('/register', (req, res) => {
     res.render('pages/signup');
 });
 
