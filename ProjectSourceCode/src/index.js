@@ -94,6 +94,23 @@ app.get('/register', (req, res) => {
     res.render('pages/signup');
 });
 
+app.get('/profile', (req, res) => {
+    const userId = req.session.userId; // Assuming you store user ID in session
+
+    if (!userId) {
+        return res.redirect('/login'); // Redirect to login if not authenticated
+    }
+
+    db.one('SELECT * FROM buffspace_main.profile WHERE user_id = $1', [userId])
+        .then(profile => {
+            res.render('pages/profile', { profile });
+        })
+        .catch(error => {
+            console.error('Error fetching profile:', error);
+            res.status(500).send('Error fetching profile');
+        });
+});
+
 
 // *****************************************************
 // <!-- Section 5 : Start Server-->
