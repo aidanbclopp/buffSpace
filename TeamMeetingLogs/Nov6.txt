@@ -1,0 +1,43 @@
+Sopy
+- set up partials
+- Got the profile page to display
+
+Cola
+- sign up html and visual aspect
+
+Gabby
+- login html and visual aspect
+
+Aidan
+- Got Docker compose working
+- index.js actually deliver the pages
+- filled out the infostructure for the pages
+
+Wolee
+- worked on Login functionality and signup functionality
+- adding users
+- working on duplicate users
+
+
+Work on next week
+
+Sopy
+- fill in the user page, since right now it just displays it
+
+Cola
+- password check, make sure its long and strong
+- javascript
+
+Gabby
+- linking
+
+Aidan
+- Creating a post functionality
+- basic widget design
+
+Wolee
+- sign up functionality
+- home page functionality
+
+- Must have release notes!! (an update loge)
+- Good amount of progress on features
