@@ -83,6 +83,10 @@ app.get('/', (req, res) => {
     res.render('pages/home');
 });
 
+app.get('/register', (req, res) => {
+    res.render('pages/signup');
+});
+
 // -------------------------------------  ROUTES for login.hbs   ----------------------------------------------
 const user = {
   user_id: undefined,
@@ -136,7 +140,6 @@ app.use(auth);
 app.get('/register', (req, res) => {
     res.render('pages/signup');
 });
-
 
 // *****************************************************
 // <!-- Section 5 : Start Server-->
