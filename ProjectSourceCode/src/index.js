@@ -69,9 +69,9 @@ app.use(
         secret: process.env.SESSION_SECRET,
         saveUninitialized: true,
         resave: true,
+        cookie: { secure: false } 
     })
 );
-
 
 app.use(
     bodyParser.urlencoded({
@@ -118,8 +118,11 @@ app.post('/login', (req, res) => {
 
       req.session.user = user;
       req.session.save();
+      
+      console.log('User data:', data);
+    console.log('Session user:', req.session.user);
 
-      res.redirect('/');
+      res.redirect('/profile');
     })
     .catch(err => {
       console.log(err);
@@ -136,6 +139,26 @@ const auth = (req, res, next) => {
 };
 
 app.use(auth);
+
+app.get('/profile', auth, (req, res) => {
+  const userId = req.session.user.user_id; // Get the user ID from the session
+  const query = `
+    SELECT p.*, u.username 
+    FROM buffspace_main.profile p
+    JOIN buffspace_main.user u ON p.user_id = u.user_id
+    WHERE p.user_id = $1
+  `; // Query to fetch the profile data along with the username
+  const values = [userId];
+
+  db.one(query, values)
+    .then(profileData => {
+      res.render('pages/profile', { profile: profileData }); // Render the profile page with the fetched data
+    })
+    .catch(err => {
+      console.log(err);
+      res.redirect('/'); // Redirect to home if there's an error
+    });
+});
 
 
 // *****************************************************
