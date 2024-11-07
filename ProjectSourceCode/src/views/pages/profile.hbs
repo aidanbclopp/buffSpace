@@ -1,0 +1,23 @@
+{{> head}}
+{{> nav}}
+
+<div class="container mt-4">
+    <h1>{{profile.first_name}} {{profile.last_name}}'s Profile</h1>
+    <img src="{{profile.profile_picture_url}}" alt="Profile Picture" class="img-fluid rounded-circle" width="150">
+    
+    <h3>Bio</h3>
+    <p>{{profile.bio}}</p>
+
+    <h3>Details</h3>
+    <ul>
+        <li><strong>Username:</strong> {{profile.username}}</li>
+        <li><strong>Graduation Year:</strong> {{profile.graduation_year}}</li>
+        <li><strong>Major:</strong> {{profile.major}}</li>
+        <li><strong>Status:</strong> {{profile.status}}</li>
+        <li><strong>Last Updated:</strong> {{profile.last_updated}}</li>
+    </ul>
+
+    {{!-- <a href="/edit-profile" class="btn btn-primary">Edit Profile</a> --}}
+</div>
+
+{{> footer}}
