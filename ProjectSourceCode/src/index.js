@@ -67,8 +67,8 @@ app.use(bodyParser.json()); // specify the usage of JSON for parsing request bod
 app.use(
     session({
         secret: process.env.SESSION_SECRET,
-        saveUninitialized: false,
-        resave: false,
+        saveUninitialized: true,
+        resave: true,
     })
 );
 
@@ -79,37 +79,63 @@ app.use(
     })
 );
 
-
-// *****************************************************
-// <!-- Section 4 : API Routes -->
-// *****************************************************
-
-
-// TODO - Include your API routes here
 app.get('/', (req, res) => {
-    res.render('pages/login');
+    res.render('pages/home');
 });
 
 app.get('/register', (req, res) => {
     res.render('pages/signup');
 });
 
-app.get('/profile', (req, res) => {
-    const userId = req.session.userId; // Assuming you store user ID in session
+// -------------------------------------  ROUTES for login.hbs   ----------------------------------------------
+const user = {
+  user_id: undefined,
+  username: undefined,
+  password: undefined,
+  created_at: undefined,
+  last_login: undefined,
+};
 
-    if (!userId) {
-        return res.redirect('/login'); // Redirect to login if not authenticated
-    }
-
-    db.one('SELECT * FROM buffspace_main.profile WHERE user_id = $1', [userId])
-        .then(profile => {
-            res.render('pages/profile', { profile });
-        })
-        .catch(error => {
-            console.error('Error fetching profile:', error);
-            res.status(500).send('Error fetching profile');
-        });
+app.get('/login', (req, res) => {
+  res.render('pages/login');
 });
+
+// Login submission
+app.post('/login', (req, res) => {
+  const username = req.body.username;
+  const password = req.body.password;
+  const query = 'select * from buffspace_main.user where password = $1 LIMIT 1';
+  const values = [password];
+
+  // get the user_id based on the password
+  db.one(query, values)
+    .then(data => {
+      user.user_id = data.user_id;
+      user.username = username;
+      user.password = data.password;
+      user.created_at = data.created_at;
+      user.last_login = data.last_login;
+
+      req.session.user = user;
+      req.session.save();
+
+      res.redirect('/');
+    })
+    .catch(err => {
+      console.log(err);
+      res.redirect('/login');
+    });
+});
+
+// Authentication middleware.
+const auth = (req, res, next) => {
+  if (!req.session.user) {
+    return res.redirect('/login');
+  }
+  next();
+};
+
+app.use(auth);
 
 
 // *****************************************************
