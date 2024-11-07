@@ -137,6 +137,9 @@ const auth = (req, res, next) => {
 
 app.use(auth);
 
+app.get('/register', (req, res) => {
+    res.render('pages/signup');
+});
 
 // *****************************************************
 // <!-- Section 5 : Start Server-->
