@@ -87,6 +87,10 @@ app.get('/register', (req, res) => {
     res.render('pages/signup');
 });
 
+app.get('/welcome', (req, res) => {
+  res.json({status: 'success', message: 'Welcome!'});
+});
+
 // -------------------------------------  ROUTES for login.hbs   ----------------------------------------------
 const user = {
   user_id: undefined,
@@ -119,7 +123,7 @@ app.post('/login', (req, res) => {
       req.session.user = user;
       req.session.save();
 
-      res.redirect('/');
+      res.redirect('/profile');
     })
     .catch(err => {
       console.log(err);
@@ -145,5 +149,5 @@ app.get('/register', (req, res) => {
 // <!-- Section 5 : Start Server-->
 // *****************************************************
 // starting the server and keeping the connection open to listen for more requests
-app.listen(3000);
+module.exports=app.listen(3000);
 console.log('Server is listening on port 3000');
