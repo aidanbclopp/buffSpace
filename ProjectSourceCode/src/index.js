@@ -140,6 +140,7 @@ const auth = (req, res, next) => {
 
 app.use(auth);
 
+
 app.get('/profile', auth, (req, res) => {
   const userId = req.session.user.user_id; // Get the user ID from the session
   const query = `
