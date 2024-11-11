@@ -142,6 +142,76 @@ const auth = (req, res, next) => {
 app.use(auth);
 
 
+//SCAFFOLDING
+app.get('/create-profile', auth, (req, res) => {
+  // Check if user already has a profile
+  const userId = req.session.user.user_id;
+  const query = `
+    SELECT * FROM buffspace_main.profile 
+    WHERE user_id = $1
+  `;
+  
+  db.oneOrNone(query, [userId])
+    .then(profile => {
+      if (profile) {
+        // If profile exists, redirect to profile page
+        res.redirect('/profile');
+      } else {
+        // If no profile exists, render create profile page
+        res.render('pages/create-profile', {
+          user: req.session.user
+        });
+      }
+    })
+    .catch(err => {
+      console.log(err);
+      res.redirect('/');
+    });
+});
+
+// Handle profile creation
+app.post('/create-profile', auth, (req, res) => {
+  const userId = req.session.user.user_id;
+  const {
+    first_name,
+    last_name,
+    bio,
+    graduation_year,
+    major,
+    status,
+    profile_picture_url
+  } = req.body;
+
+  const query = `
+    INSERT INTO buffspace_main.profile 
+    (user_id, first_name, last_name, bio, graduation_year, major, status, profile_picture_url, last_updated)
+    VALUES ($1, $2, $3, $4, $5, $6, $7, $8, CURRENT_TIMESTAMP)
+    RETURNING *
+  `;
+
+  const values = [
+    userId,
+    first_name,
+    last_name,
+    bio,
+    graduation_year,
+    major,
+    status,
+    profile_picture_url
+  ];
+
+  db.one(query, values)
+    .then(() => {
+      res.redirect('/profile');
+    })
+    .catch(err => {
+      console.log(err);
+      res.redirect('/create-profile');
+    });
+});
+//SCAFFOLDING END
+
+
 app.get('/profile/:username?', auth, (req, res) => {
   const requestedUsername = req.params.username || req.session.user.username;
   const query = `
@@ -233,6 +303,7 @@ app.post('/edit-profile', auth, (req, res) => {
       res.redirect('/edit-profile');
     });
 });
+
 
 
 // *****************************************************
