@@ -87,6 +87,57 @@ app.get('/register', (req, res) => {
     res.render('pages/signup');
 });
 
+const register = {
+  username: undefined,
+  password: undefined,
+  confirm_password: undefined,
+};
+
+app.get('/signup', (req, res) => {
+    res.render('pages/signup');
+});
+
+app.post('/signup', (req, res) => {
+  const username = req.body.username;
+  const password = req.body.password;
+  const confirmPassword = req.body.confirmPassword;
+
+  console.log(req.body);
+
+  db.tx(async t => {
+    const hash = await bcrypt.hash(req.body.password, 10);
+
+    const [row] = await t.any(
+      `SELECT * FROM buffspace_main.user WHERE username = $1`, [username]
+      );
+
+    if (row || (password !== confirmPassword)) {
+      throw new Error(`choose another username or password does not match`);
+    }
+
+    // There are either no prerequisites, or all have been taken.
+    await t.none(
+      'INSERT INTO buffspace_main.register(username, password, confirm_password) VALUES ($1, $2, $3);',
+          [username, hash, hash]
+        );
+      })
+        .then(signup => {
+          //console.info(courses);
+          res.render('pages/login', {
+            username: register.username,
+            password: register.password,
+            confirmPassword: register.confirmPassword,
+            message: `Successfully added`,
+          });
+        })
+        .catch(err => {
+          res.render('pages/signup', {
+            error: true,
+            message: err.message,
+          });
+        });
+});
+
 // -------------------------------------  ROUTES for login.hbs   ----------------------------------------------
 const user = {
   user_id: undefined,
@@ -127,6 +178,10 @@ app.post('/login', (req, res) => {
     });
 });
 
+app.get('/welcome', (req, res) => {
+  res.json({status: 'success', message: 'Welcome!'});
+});
+
 // Authentication middleware.
 const auth = (req, res, next) => {
   if (!req.session.user) {
@@ -137,10 +192,10 @@ const auth = (req, res, next) => {
 
 app.use(auth);
 
-
 // *****************************************************
 // <!-- Section 5 : Start Server-->
 // *****************************************************
-// starting the server and keeping the connection open to listen for more requests
-app.listen(3000);
+// starting the server and keeping the connection open to listen for more request
+
+module.exports = app.listen(3000);
 console.log('Server is listening on port 3000');
