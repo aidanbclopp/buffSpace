@@ -91,10 +91,6 @@ app.get('/register', (req, res) => {
     res.render('pages/signup');
 });
 
-app.get('/welcome', (req, res) => {
-  res.json({status: 'success', message: 'Welcome!'});
-});
-
 // -------------------------------------  ROUTES for login.hbs   ----------------------------------------------
 const user = {
   user_id: undefined,
@@ -108,45 +104,32 @@ app.get('/login', (req, res) => {
   res.render('pages/login');
 });
 
+// Login submission
 app.post('/login', (req, res) => {
   const username = req.body.username;
   const password = req.body.password;
-  const query = 'SELECT * FROM buffspace_main.user WHERE username = $1 LIMIT 1';
-  const values = [username];
+  const query = 'select * from buffspace_main.user where password = $1 LIMIT 1';
+  const values = [password];
 
-  // Get the user based on the username
-db.one(query, values)
-  .then(data => {
-    if (data.password === password) {  // Compare plaintext passwords
-      req.session.user = {
-        user_id: data.user_id,
-        username: data.username,
-        created_at: data.created_at,
-        last_login: data.last_login,
-      };
+  // get the user_id based on the password
+  db.one(query, values)
+    .then(data => {
+      user.user_id = data.user_id;
+      user.username = username;
+      user.password = data.password;
+      user.created_at = data.created_at;
+      user.last_login = data.last_login;
+
+      req.session.user = user;
       req.session.save();
-      return res.status(200).json({
-        status: 'success',
-        message: 'Login successful.',
-        session: req.session.user
-      });
-    } else {
-      return res.status(401).json({
-        status: 'failure',
-        message: 'Invalid username or password.'
-      });
-    }
-  })
-  .catch(err => {
-    console.log(err);
-    return res.status(401).json({
-      status: 'failure',
-      message: 'Invalid username or password.'
+    
+      res.redirect('/profile');
+    })
+    .catch(err => {
+      console.log(err);
+      res.redirect('/login');
     });
-  });
 });
-
-
 
 // Authentication middleware.
 const auth = (req, res, next) => {
@@ -327,5 +310,5 @@ app.post('/edit-profile', auth, (req, res) => {
 // <!-- Section 5 : Start Server-->
 // *****************************************************
 // starting the server and keeping the connection open to listen for more requests
-module.exports=app.listen(3000);
+app.listen(3000);
 console.log('Server is listening on port 3000');
