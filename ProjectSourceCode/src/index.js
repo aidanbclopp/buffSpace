@@ -22,13 +22,13 @@ const axios = require('axios'); // To make HTTP requests from our server. We'll 
 
 // create `ExpressHandlebars` instance and configure the layouts and partials dir.
 const hbs = handlebars.create({
-    extname: 'hbs',
-    layoutsDir: __dirname + '/views/layouts',
-    partialsDir: __dirname + '/views/partials',
-    helpers: {
-      eq: function (a, b) {
-          return a === b;
-      }
+  extname: 'hbs',
+  layoutsDir: __dirname + '/views/layouts',
+  partialsDir: __dirname + '/views/partials',
+  helpers: {
+    eq: function (a, b) {
+      return a === b;
+    }
   }
 });
 
@@ -69,12 +69,12 @@ app.use(bodyParser.json()); // specify the usage of JSON for parsing request bod
 
 // initialize session variables
 app.use(
-    session({
-        secret: process.env.SESSION_SECRET,
-        saveUninitialized: true,
-        resave: true,
-        cookie: { secure: false }
-    })
+  session({
+    secret: process.env.SESSION_SECRET,
+    saveUninitialized: true,
+    resave: true,
+    cookie: { secure: false }
+  })
 );
 
 app.use(
@@ -99,7 +99,7 @@ const register = {
 };
 
 app.get('/signup', (req, res) => {
-    res.render('pages/signup');
+  res.render('pages/signup');
 });
 
 app.post('/signup', (req, res) => {
@@ -114,7 +114,7 @@ app.post('/signup', (req, res) => {
 
     const [row] = await t.any(
       `SELECT * FROM buffspace_main.user WHERE username = $1`, [username]
-      );
+    );
 
     if (row || (password !== confirmPassword)) {
       throw new Error(`choose another username or password does not match`);
@@ -122,26 +122,36 @@ app.post('/signup', (req, res) => {
 
     // There are either no prerequisites, or all have been taken.
     await t.none(
-        'INSERT INTO buffspace_main.user(username, password, confirm_password) VALUES ($1, $2, $3);',
-          [username, password, confirmPassword]
-        );
-      })
-        .then(signup => {
-          //console.info(courses);
-          res.render('pages/login', {
-            username: register.username,
-            password: register.password,
-            confirmPassword: register.confirmPassword,
-            message: `Success`,
-          });
-        })
-        .catch(err => {
-          res.render('pages/signup', {
-            error: true,
-            message: err.message,
-          });
-        });
+      'INSERT INTO buffspace_main.user(username, password, confirm_password) VALUES ($1, $2, $3);',
+      [username, password, confirmPassword]
+    );
+  })
+    .then(signup => {
+      //console.info(courses);
+      res.render('pages/login', {
+        username: register.username,
+        password: register.password,
+        confirmPassword: register.confirmPassword,
+        message: `Success`,
+      });
+    })
+    .catch(err => {
+      res.render('pages/signup', {
+        error: true,
+        message: err.message,
+      });
+    });
 });
+
+app.get('/logout', (req, res) => {
+  req.session.destroy(err => {
+    if (err) {
+      return res.redirect('/');
+    }
+    res.render('pages/logout', { message: "Logged Out Successfully" });
+  });
+});
+
 
 // -------------------------------------  ROUTES for login.hbs   ----------------------------------------------
 const user = {
@@ -184,7 +194,7 @@ app.post('/login', (req, res) => {
 });
 
 app.get('/welcome', (req, res) => {
-  res.json({status: 'success', message: 'Welcome!'});
+  res.json({ status: 'success', message: 'Welcome!' });
 });
 
 // Authentication middleware.
