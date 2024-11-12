@@ -29,6 +29,6 @@ services:
       - '3000:3000'
     volumes:
       - ./:/home/node/app
-    command: 'node src/index.js'
+    command: 'npm run testandrun'
 volumes:
   buffspace:
