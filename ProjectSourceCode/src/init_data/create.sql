@@ -1,13 +1,15 @@
 create schema buffspace_main;
 
+DROP TABLE IF EXISTS buffspace_main.user;
 create table buffspace_main.user
 (
     --
-    user_id    integer
+    user_id    SERIAL
         constraint user_pk
             primary key,
     username   varchar(50)                         not null,
     password   varchar(255)                        not null,
+    confirm_password varchar(255) not null,
     created_at timestamp default current_timestamp not null,
     last_login timestamp default current_timestamp not null
 );
