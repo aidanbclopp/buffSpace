@@ -5,6 +5,155 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Welcome to BuffSpace</title>
+
+    <style>
+        /* General Body Styling */
+        body {
+            font-family: 'Arial', sans-serif;
+            background-color: #D9E3F0;
+            /* Soft blue background */
+            color: #333;
+            display: flex;
+            align-items: center;
+            height: 100vh;
+            margin: 0;
+            padding: 0;
+            background-image: url('https://aboutboulder.com/wp-content/uploads/2023/08/The-Vibrant-Campus-Life-at-CU-Boulder-scaled.jpeg');
+            /* Background image */
+            background-size: cover;
+            background-position: center;
+        }
+
+        /* Header Styling */
+        h1 {
+            color: #fff;
+            font-size: 3rem;
+            font-weight: bold;
+            text-align: center;
+            margin-bottom: 30px;
+            text-shadow: 2px 2px 8px rgba(0, 0, 0, 0.3);
+            /* Shadow effect */
+        }
+
+        /* Signup Form Container */
+        .signup-form {
+            background-color: rgba(255, 255, 255, 0.8);
+            /* Semi-transparent white */
+            border-radius: 15px;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
+            padding: 30px;
+            width: 100%;
+            max-width: 400px;
+            box-sizing: border-box;
+            margin: auto;
+            transition: transform 0.3s ease-in-out;
+        }
+
+        .signup-form:hover {
+            transform: scale(1.05);
+            /* Enlarge form on hover */
+        }
+
+        /* Form Group Styling */
+        .form-group {
+            margin-bottom: 20px;
+        }
+
+        /* Input Fields Styling */
+        .form-control {
+            width: 100%;
+            padding: 12px;
+            font-size: 1rem;
+            border: 2px solid #B5D0E7;
+            border-radius: 8px;
+            margin-top: 5px;
+            box-sizing: border-box;
+            transition: border 0.3s ease-in-out;
+        }
+
+        .form-control:focus {
+            outline: none;
+            border-color: #007bff;
+            box-shadow: 0 0 5px rgba(0, 123, 255, 0.5);
+        }
+
+        input::placeholder {
+            color: #888;
+        }
+
+        /* Button Styling */
+        .btn-primary {
+            width: 100%;
+            background-color: #007bff;
+            border: none;
+            padding: 14px;
+            color: white;
+            font-size: 1.2rem;
+            border-radius: 5px;
+            cursor: pointer;
+            transition: background-color 0.3s ease-in-out;
+            font-weight: bold;
+        }
+
+        .btn-primary:hover {
+            background-color: #0056b3;
+        }
+
+        /* Error Message Styling */
+        .error-message {
+            color: red;
+            font-size: 0.875rem;
+            margin-top: 10px;
+            text-align: center;
+        }
+
+        /* Responsive Design */
+        @media (max-width: 600px) {
+            .signup-form {
+                padding: 20px;
+                max-width: 80%;
+            }
+
+            h1 {
+                font-size: 2.5rem;
+            }
+
+            .btn-primary {
+                font-size: 1rem;
+            }
+        }
+
+        /* Main Description Section */
+        #description {
+            color: #fff;
+            text-align: center;
+            font-size: 1.2rem;
+            margin: 20px 0;
+            background-color: rgba(0, 0, 0, 0.5);
+            padding: 10px;
+            border-radius: 10px;
+            max-width: 600px;
+            box-sizing: border-box;
+        }
+
+        /* Auth Links Styling */
+        #auth-links {
+            text-align: center;
+            margin-top: 20px;
+        }
+
+        #auth-links a {
+            color: #007bff;
+            font-weight: bold;
+            text-decoration: none;
+            margin: 0 10px;
+            transition: color 0.3s ease-in-out;
+        }
+
+        #auth-links a:hover {
+            color: #0056b3;
+        }
+    </style>
 </head>
 
 <body>
@@ -23,8 +172,10 @@
 
         <section id="auth-links">
             <p>
-                <a href="/login">Login</a> or
-                <a href="/register">Register</a> to start your journey!
+                <a href="/login">Login</a>
+                <span style="color: white;">or</span>
+                <a href="/register">Register</a>
+                <span style="color: white;">to start your journey!</span>
             </p>
         </section>
     </main>
