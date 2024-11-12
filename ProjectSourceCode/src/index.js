@@ -73,7 +73,7 @@ app.use(
         secret: process.env.SESSION_SECRET,
         saveUninitialized: true,
         resave: true,
-        cookie: { secure: false } 
+        cookie: { secure: false }
     })
 );
 
@@ -110,7 +110,7 @@ app.post('/signup', (req, res) => {
   console.log(req.body);
 
   db.tx(async t => {
-    const hash = await bcrypt.hash(req.body.password, 10);
+    // const hash = await bcrypt.hash(req.body.password, 10);
 
     const [row] = await t.any(
       `SELECT * FROM buffspace_main.user WHERE username = $1`, [username]
@@ -122,8 +122,8 @@ app.post('/signup', (req, res) => {
 
     // There are either no prerequisites, or all have been taken.
     await t.none(
-      'INSERT INTO buffspace_main.register(username, password, confirm_password) VALUES ($1, $2, $3);',
-          [username, hash, hash]
+        'INSERT INTO buffspace_main.user(username, password, confirm_password) VALUES ($1, $2, $3);',
+          [username, password, confirmPassword]
         );
       })
         .then(signup => {
@@ -132,7 +132,7 @@ app.post('/signup', (req, res) => {
             username: register.username,
             password: register.password,
             confirmPassword: register.confirmPassword,
-            message: `Successfully added`,
+            message: `Success`,
           });
         })
         .catch(err => {
@@ -174,7 +174,7 @@ app.post('/login', (req, res) => {
 
       req.session.user = user;
       req.session.save();
-    
+
       res.redirect('/profile');
     })
     .catch(err => {
@@ -212,10 +212,10 @@ app.get('/create-profile', auth, (req, res) => {
   // Check if user already has a profile
   const userId = req.session.user.user_id;
   const query = `
-    SELECT * FROM buffspace_main.profile 
+    SELECT * FROM buffspace_main.profile
     WHERE user_id = $1
   `;
-  
+
   db.oneOrNone(query, [userId])
     .then(profile => {
       if (profile) {
@@ -248,7 +248,7 @@ app.post('/create-profile', auth, (req, res) => {
   } = req.body;
 
   const query = `
-    INSERT INTO buffspace_main.profile 
+    INSERT INTO buffspace_main.profile
     (user_id, first_name, last_name, bio, graduation_year, major, status, profile_picture_url, last_updated)
     VALUES ($1, $2, $3, $4, $5, $6, $7, $8, CURRENT_TIMESTAMP)
     RETURNING *
@@ -289,7 +289,7 @@ app.get('/profile/:username?', auth, (req, res) => {
 
   db.one(query, values)
     .then(profileData => {
-      res.render('pages/profile', { 
+      res.render('pages/profile', {
         profile: profileData,
         isOwnProfile: profileData.user_id === req.session.user.user_id
       });
@@ -303,7 +303,7 @@ app.get('/profile/:username?', auth, (req, res) => {
 app.get('/edit-profile', auth, (req, res) => {
   const userId = req.session.user.user_id;
   const query = `
-    SELECT p.*, u.username 
+    SELECT p.*, u.username
     FROM buffspace_main.profile p
     JOIN buffspace_main.user u ON p.user_id = u.user_id
     WHERE p.user_id = $1
@@ -334,8 +334,8 @@ app.post('/edit-profile', auth, (req, res) => {
   } = req.body;
 
   const query = `
-    UPDATE buffspace_main.profile 
-    SET 
+    UPDATE buffspace_main.profile
+    SET
       first_name = $1,
       last_name = $2,
       bio = $3,
