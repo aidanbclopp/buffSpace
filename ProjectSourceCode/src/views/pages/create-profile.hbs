@@ -1,0 +1,183 @@
+<!-- Create Profile Page HTML -->
+<div class="profile-container">
+    <div class="profile-content">
+        <h1>Create Your Profile</h1>
+        
+        <form action="/create-profile" method="POST" class="create-form">
+            <div class="form-group">
+                <label for="profile_picture_url">Profile Picture URL</label>
+                <input type="text" id="profile_picture_url" name="profile_picture_url" 
+                      class="form-control" placeholder="Enter URL for your profile picture">
+                <small class="form-text">Enter a URL for your profile picture (e.g., from a photo sharing site)</small>
+            </div>
+
+            <div class="form-group">
+                <label for="first_name">First Name*</label>
+                <input type="text" id="first_name" name="first_name" 
+                      class="form-control" required>
+            </div>
+
+            <div class="form-group">
+                <label for="last_name">Last Name*</label>
+                <input type="text" id="last_name" name="last_name" 
+                      class="form-control" required>
+            </div>
+
+            <div class="form-group">
+                <label for="bio">Bio</label>
+                <textarea id="bio" name="bio" class="form-control" 
+                          rows="4" placeholder="Tell us about yourself..."></textarea>
+            </div>
+
+            <div class="form-group">
+                <label for="graduation_year">Graduation Year*</label>
+                <input type="number" id="graduation_year" name="graduation_year" 
+                      class="form-control" min="2024" max="2030" required>
+            </div>
+
+            <div class="form-group">
+                <label for="major">Major*</label>
+                <input type="text" id="major" name="major" 
+                      class="form-control" required>
+            </div>
+
+            <div class="form-group">
+                <label for="status">Status*</label>
+                <select id="status" name="status" class="form-control" required>
+                    <option value="">Select your status</option>
+                    <option value="Active">Active</option>
+                    <option value="Alumni">Alumni</option>
+                    <option value="On Leave">On Leave</option>
+                </select>
+            </div>
+
+            <button type="submit" class="btn-primary">Create Profile</button>
+        </form>
+    </div>
+</div>
+
+<style>
+/* General Body Styling */
+body {
+    font-family: 'Arial', sans-serif;
+    background-color: #D9E3F0;
+    color: #333;
+    margin: 0;
+    padding: 0;
+    background-image: url('https://aboutboulder.com/wp-content/uploads/2023/08/The-Vibrant-Campus-Life-at-CU-Boulder-scaled.jpeg');
+    background-size: cover;
+    background-position: center;
+    background-attachment: fixed;
+    min-height: 100vh;
+}
+
+/* Profile Container */
+.profile-container {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    padding: 40px 20px;
+    min-height: calc(100vh - 80px);
+}
+
+/* Profile Content */
+.profile-content {
+    background-color: rgba(255, 255, 255, 0.9);
+    border-radius: 15px;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
+    padding: 30px;
+    width: 100%;
+    max-width: 600px;
+    box-sizing: border-box;
+    margin: auto;
+}
+
+/* Header Styling */
+h1 {
+    color: #CFB87C;
+    font-size: 2.5rem;
+    font-weight: bold;
+    text-align: center;
+    margin-bottom: 30px;
+    text-shadow: 1px 1px 4px rgba(0, 0, 0, 0.1);
+}
+
+/* Form Styling */
+.create-form {
+    margin-top: 20px;
+}
+
+.form-group {
+    margin-bottom: 20px;
+}
+
+label {
+    display: block;
+    margin-bottom: 5px;
+    color: #000000;
+    font-weight: bold;
+}
+
+.form-control {
+    width: 100%;
+    padding: 10px;
+    border: 2px solid #B5D0E7;
+    border-radius: 5px;
+    font-size: 1rem;
+    transition: border-color 0.3s ease;
+}
+
+.form-control:focus {
+    outline: none;
+    border-color: #565A5C;
+    box-shadow: 0 0 5px rgba(86, 90, 92, 0.2);
+}
+
+textarea.form-control {
+    resize: vertical;
+    min-height: 100px;
+}
+
+.form-text {
+    color: #666;
+    font-size: 0.875rem;
+    margin-top: 5px;
+    display: block;
+}
+
+/* Button Styling */
+.btn-primary {
+    display: block;
+    width: 100%;
+    background-color: #565A5C;
+    border: none;
+    padding: 14px;
+    color: white;
+    font-size: 1.2rem;
+    border-radius: 5px;
+    cursor: pointer;
+    transition: background-color 0.3s ease-in-out;
+    font-weight: bold;
+    text-align: center;
+    text-decoration: none;
+    margin-top: 30px;
+}
+
+.btn-primary:hover {
+    background-color: #CFB87C;
+    text-decoration: none;
+    color: white;
+}
+
+/* Responsive Design */
+@media (max-width: 768px) {
+    .profile-content {
+        padding: 20px;
+        margin: 20px;
+    }
+
+    h1 {
+        font-size: 2rem;
+    }
+}
+</style>
