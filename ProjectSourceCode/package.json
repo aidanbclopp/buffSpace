@@ -7,7 +7,7 @@
     "bootstrap": "^5.3.3",
     "bootstrap-icons": "^1.11.3",
     "express": "^4.21.1",
-    "express-handlebars": "^5.3.3",
+    "express-handlebars": "^5.3.5",
     "express-session": "^1.17.1",
     "handlebars": "^4.7.8",
     "pg-promise": "^10.15.4"
