@@ -102,6 +102,7 @@ app.get('/signup', (req, res) => {
     res.render('pages/signup');
 });
 
+/*
 app.post('/signup', (req, res) => {
   const username = req.body.username;
   const password = req.body.password;
@@ -132,13 +133,59 @@ app.post('/signup', (req, res) => {
             username: register.username,
             password: register.password,
             confirmPassword: register.confirmPassword,
-            message: `Success`,
+            message: 'Success',
           });
         })
         .catch(err => {
           res.render('pages/signup', {
             error: true,
             message: err.message,
+          });
+        });
+});
+*/
+
+//for testing
+app.post('/signup', (req, res) => {
+  const username = req.body.username;
+  const password = req.body.password;
+  const confirmPassword = req.body.confirmPassword;
+
+  console.log(req.body);
+
+  db.tx(async t => {
+    // const hash = await bcrypt.hash(req.body.password, 10);
+
+    const [row] = await t.any(
+      `SELECT * FROM buffspace_main.user WHERE username = $1`, [username]
+      );
+
+    if (row || (password !== confirmPassword)) {
+      throw new Error(`choose another username or password does not match`);
+    }
+
+    // There are either no prerequisites, or all have been taken.
+    await t.none(
+        'INSERT INTO buffspace_main.user(username, password, confirm_password) VALUES ($1, $2, $3);',
+          [username, password, confirmPassword]
+        );
+      })
+        .then(signup => {
+          //console.info(courses);
+          res.status(200).json({
+            username: register.username,
+            password: register.password,
+            confirmPassword: register.confirmPassword,
+            message: 'Registration successful.',
+          });
+        })
+        .catch(err => {
+          console.log(err);
+          return res.status(400).json({
+            username: register.username,
+            password: register.password,
+            confirmPassword: register.confirmPassword,
+            message: 'Passwords do not match.',
           });
         });
 });
@@ -156,7 +203,6 @@ app.get('/login', (req, res) => {
   res.render('pages/login');
 });
 
-// Login submission
 app.post('/login', (req, res) => {
   const username = req.body.username;
   const password = req.body.password;
