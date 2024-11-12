@@ -1,21 +1,146 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Signup</title>
+    <style>
+        /* General Body Styling */
+        body {
+            font-family: 'Arial', sans-serif;
+            background-color: #D9E3F0; /* Soft blue background */
+            color: #333;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+            margin: 0;
+            padding: 0;
+            background-image: url('https://aboutboulder.com/wp-content/uploads/2023/08/The-Vibrant-Campus-Life-at-CU-Boulder-scaled.jpeg'); /* Subtle gradient background */
+            background-size: cover;
+            background-position: center;
+        }
+        
+        /* Header Styling */
+        h1 {
+            color: #fff;
+            font-size: 3rem;
+            font-weight: bold;
+            text-align: center;
+            margin-bottom: 30px;
+            text-shadow: 2px 2px 8px rgba(0, 0, 0, 0.3); /* Slight shadow effect */
+        }
+        
+        /* Signup Form Container */
+        .signup-form {
+            background-color: rgba(255, 255, 255, 0.8); /* Semi-transparent white */
+            border-radius: 15px;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
+            padding: 30px;
+            width: 100%;
+            max-width: 400px;
+            box-sizing: border-box;
+            margin: auto;
+            transition: transform 0.3s ease-in-out;
+        }
+        .signup-form:hover {
+            transform: scale(1.05); /* Slightly enlarge form on hover */
+        }
+        
+        /* Form Group Styling */
+        .form-group {
+            margin-bottom: 20px;
+        }
+        
+        /* Input Fields Styling */
+        .form-control {
+            width: 100%;
+            padding: 12px;
+            font-size: 1rem;
+            border: 2px solid #B5D0E7;
+            border-radius: 8px;
+            margin-top: 5px;
+            box-sizing: border-box;
+            transition: border 0.3s ease-in-out;
+        }
+        
+        .form-control:focus {
+            outline: none;
+            border-color: #007bff;
+            box-shadow: 0 0 5px rgba(0, 123, 255, 0.5);
+        }
+        
+        input::placeholder {
+            color: #888;
+        }
+        
+        /* Button Styling */
+        .btn-primary {
+            width: 100%;
+            background-color: #007bff;
+            border: none;
+            padding: 14px;
+            color: white;
+            font-size: 1.2rem;
+            border-radius: 5px;
+            cursor: pointer;
+            transition: background-color 0.3s ease-in-out;
+            font-weight: bold;
+        }
+        
+        .btn-primary:hover {
+            background-color: #0056b3;
+        }
+        
+        /* Error Message Styling */
+        .error-message {
+            color: red;
+            font-size: 0.875rem;
+            margin-top: 10px;
+            text-align: center;
+        }
+        
+        /* Responsive Design */
+        @media (max-width: 600px) {
+            .signup-form {
+                padding: 20px;
+                max-width: 80%;
+            }
 
-<h1>Signup</h1>
+            h1 {
+                font-size: 2.5rem;
+            }
 
-<form action="/signup" method="POST">
-  <div class="form-group">
-    <label for="username">Username:</label>
-    <input type="text" id="username" name="username" class="form-control" required>
-  </div>
+            .btn-primary {
+                font-size: 1rem;
+            }
+        }
+    </style>
+</head>
+<body>
 
-  <div class="form-group">
-    <label for="password">Password:</label>
-    <input type="password" id="password" name="password" class="form-control" required>
-  </div>
+<h1>Sign Up for BuffSpace</h1>
 
-  <div class="form-group">
-    <label for="confirmPassword">Confirm Password:</label>
-    <input type="password" id="confirmPassword" name="confirmPassword" class="form-control" required>
-  </div>
+<div class="signup-form">
+    <form action="/signup" method="POST">
+        <div class="form-group">
+            <label for="username">Username:</label>
+            <input type="text" id="username" name="username" class="form-control" required placeholder="Enter your username">
+        </div>
 
-  <button type="submit" class="btn btn-primary">Signup</button>
-</form>
+        <div class="form-group">
+            <label for="password">Password:</label>
+            <input type="password" id="password" name="password" class="form-control" required placeholder="Enter your password">
+        </div>
+
+        <div class="form-group">
+            <label for="confirmPassword">Confirm Password:</label>
+            <input type="password" id="confirmPassword" name="confirmPassword" class="form-control" required placeholder="Re-enter your password">
+        </div>
+
+        <button type="submit" class="btn-primary">Sign Up</button>
+    </form>
+</div>
+
+</body>
+</html>

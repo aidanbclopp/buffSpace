@@ -25,8 +25,12 @@ const hbs = handlebars.create({
     extname: 'hbs',
     layoutsDir: __dirname + '/views/layouts',
     partialsDir: __dirname + '/views/partials',
+    helpers: {
+      eq: function (a, b) {
+          return a === b;
+      }
+  }
 });
-
 
 // database configuration
 const dbConfig = {
@@ -69,9 +73,9 @@ app.use(
         secret: process.env.SESSION_SECRET,
         saveUninitialized: true,
         resave: true,
+        cookie: { secure: false } 
     })
 );
-
 
 app.use(
     bodyParser.urlencoded({
@@ -169,8 +173,8 @@ app.post('/login', (req, res) => {
 
       req.session.user = user;
       req.session.save();
-
-      res.redirect('/');
+    
+      res.redirect('/profile');
     })
     .catch(err => {
       console.log(err);
@@ -192,6 +196,7 @@ const auth = (req, res, next) => {
 
 app.use(auth);
 
+
 // *****************************************************
 // <!-- Section 5 : Start Server-->
 // *****************************************************
@@ -199,3 +204,166 @@ app.use(auth);
 
 module.exports = app.listen(3000);
 console.log('Server is listening on port 3000');
+
+
+//SCAFFOLDING
+app.get('/create-profile', auth, (req, res) => {
+  // Check if user already has a profile
+  const userId = req.session.user.user_id;
+  const query = `
+    SELECT * FROM buffspace_main.profile 
+    WHERE user_id = $1
+  `;
+  
+  db.oneOrNone(query, [userId])
+    .then(profile => {
+      if (profile) {
+        // If profile exists, redirect to profile page
+        res.redirect('/profile');
+      } else {
+        // If no profile exists, render create profile page
+        res.render('pages/create-profile', {
+          user: req.session.user
+        });
+      }
+    })
+    .catch(err => {
+      console.log(err);
+      res.redirect('/');
+    });
+});
+
+// Handle profile creation
+app.post('/create-profile', auth, (req, res) => {
+  const userId = req.session.user.user_id;
+  const {
+    first_name,
+    last_name,
+    bio,
+    graduation_year,
+    major,
+    status,
+    profile_picture_url
+  } = req.body;
+
+  const query = `
+    INSERT INTO buffspace_main.profile 
+    (user_id, first_name, last_name, bio, graduation_year, major, status, profile_picture_url, last_updated)
+    VALUES ($1, $2, $3, $4, $5, $6, $7, $8, CURRENT_TIMESTAMP)
+    RETURNING *
+  `;
+
+  const values = [
+    userId,
+    first_name,
+    last_name,
+    bio,
+    graduation_year,
+    major,
+    status,
+    profile_picture_url
+  ];
+
+  db.one(query, values)
+    .then(() => {
+      res.redirect('/profile');
+    })
+    .catch(err => {
+      console.log(err);
+      res.redirect('/create-profile');
+    });
+});
+//SCAFFOLDING END
+
+
+app.get('/profile/:username?', auth, (req, res) => {
+  const requestedUsername = req.params.username || req.session.user.username;
+  const query = `
+    SELECT p.*, u.username, u.user_id
+    FROM buffspace_main.profile p
+    JOIN buffspace_main.user u ON p.user_id = u.user_id
+    WHERE u.username = $1
+  `;
+  const values = [requestedUsername];
+
+  db.one(query, values)
+    .then(profileData => {
+      res.render('pages/profile', { 
+        profile: profileData,
+        isOwnProfile: profileData.user_id === req.session.user.user_id
+      });
+    })
+    .catch(err => {
+      console.log(err);
+      res.redirect('/');
+    });
+});
+
+app.get('/edit-profile', auth, (req, res) => {
+  const userId = req.session.user.user_id;
+  const query = `
+    SELECT p.*, u.username 
+    FROM buffspace_main.profile p
+    JOIN buffspace_main.user u ON p.user_id = u.user_id
+    WHERE p.user_id = $1
+  `;
+  const values = [userId];
+
+  db.one(query, values)
+    .then(profileData => {
+      res.render('pages/edit-profile', { profile: profileData });
+    })
+    .catch(err => {
+      console.log(err);
+      res.redirect('/profile');
+    });
+});
+
+// POST route to handle profile updates
+app.post('/edit-profile', auth, (req, res) => {
+  const userId = req.session.user.user_id;
+  const {
+    first_name,
+    last_name,
+    bio,
+    graduation_year,
+    major,
+    status,
+    profile_picture_url
+  } = req.body;
+
+  const query = `
+    UPDATE buffspace_main.profile 
+    SET 
+      first_name = $1,
+      last_name = $2,
+      bio = $3,
+      graduation_year = $4,
+      major = $5,
+      status = $6,
+      profile_picture_url = $7,
+      last_updated = CURRENT_TIMESTAMP
+    WHERE user_id = $8
+    RETURNING *
+  `;
+
+  const values = [
+    first_name,
+    last_name,
+    bio,
+    graduation_year,
+    major,
+    status,
+    profile_picture_url,
+    userId
+  ];
+
+  db.one(query, values)
+    .then(() => {
+      res.redirect('/profile');
+    })
+    .catch(err => {
+      console.log(err);
+      res.redirect('/edit-profile');
+    });
+});
