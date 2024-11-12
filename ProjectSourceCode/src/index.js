@@ -92,6 +92,10 @@ app.get('/register', (req, res) => {
   res.render('pages/signup');
 });
 
+app.get('/welcome', (req, res) => {
+  res.json({status: 'success', message: 'Welcome!'});
+});
+
 const register = {
   username: undefined,
   password: undefined,
