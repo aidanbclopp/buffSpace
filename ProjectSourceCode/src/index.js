@@ -128,12 +128,7 @@ app.post('/signup', (req, res) => {
       })
         .then(signup => {
           //console.info(courses);
-          res.render('pages/login', {
-            username: register.username,
-            password: register.password,
-            confirmPassword: register.confirmPassword,
-            message: `Success`,
-          });
+          res.render('pages/create-profile')
         })
         .catch(err => {
           res.render('pages/signup', {
@@ -264,6 +259,8 @@ app.post('/create-profile', auth, (req, res) => {
     status,
     profile_picture_url
   ];
+
+  console.log('Profile Values:', values);
 
   db.one(query, values)
     .then(() => {
