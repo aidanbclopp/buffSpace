@@ -31,7 +31,7 @@ create table buffspace_main.profile_song
 
 create table buffspace_main.profile
 (
-    profile_id          integer
+    profile_id          SERIAL
         constraint profile_pk
             primary key,
     user_id             integer                             not null
@@ -54,7 +54,7 @@ create table buffspace_main.profile
 
 create table buffspace_main.post
 (
-    post_id    integer
+    post_id    SERIAL
         constraint post_pk
             primary key,
     user_id    integer                                not null
@@ -68,7 +68,7 @@ create table buffspace_main.post
 
 create table buffspace_main.comment
 (
-    comment_id integer
+    comment_id SERIAL
         constraint comment_pk
             primary key,
     post_id    integer                             not null
@@ -100,7 +100,7 @@ create table buffspace_main.friend
 
 create table buffspace_main.message
 (
-    message_id   integer                                not null
+    message_id      SERIAL
         constraint message_pk
             primary key,
     from_user_id integer

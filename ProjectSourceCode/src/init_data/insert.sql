@@ -1,17 +1,20 @@
 INSERT INTO buffspace_main.user
-  (username, password, confirm_password, created_at, last_login)
+  (user_id, username, password, last_login)
 VALUES
-  (
-    'orange',
-    'abcdefg',
-    '2024-06-24 12:34:56'
-  );
+    (1,'orange','abcdefg','2024-06-24 12:34:56'),
+    (2,'alice','cheez', DEFAULT),
+    (3,'bob','cheez', DEFAULT),
+    (4,'charlie','cheez', DEFAULT),
+    (5,'david','cheez', DEFAULT),
+    (6,'emma','cheez', DEFAULT),
+    (7,'fiona','cheez', DEFAULT),
+    (8,'george','cheez', DEFAULT),
+    (9,'hannah','cheez', DEFAULT);
 
 INSERT INTO buffspace_main.profile
-  (profile_id, user_id, bio, profile_picture_url, first_name, last_name, graduation_year, major, song_id, status, last_updated)
+  (user_id, bio, profile_picture_url, first_name, last_name, graduation_year, major, status)
 VALUES
   (
-    1, -- profile_id
     1, -- user_id (should correspond to an existing user)
     'I AM CHIP', -- bio
     'https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcRmIo42UGDaWsRLggK0jDKeUhcwRe39QyC8hg&s', -- profile_picture_url
@@ -19,7 +22,27 @@ VALUES
     'BUFFALO', -- last_name
     2024, -- graduation_year
     'IM CHIP', -- major
-    NULL, -- song_id (provide a valid value or NULL if applicable)
-    'Active', -- status
-    DEFAULT -- last_updated (or provide a specific timestamp if needed)
+    'Active' -- status
   );
+
+INSERT INTO buffspace_main.profile (user_id, first_name, last_name, profile_picture_url)
+VALUES
+    (2, 'Alice', 'Smith', 'https://img.freepik.com/premium-vector/avatar-minimalist-line-art-icon-logo-symbol-black-color-only_925376-257641.jpg'),
+    (3, 'Bob', 'Johnson', 'https://img.freepik.com/premium-vector/boy-minimalist-line-art-icon-logo-symbol-black-color-only_925376-259120.jpg'),
+    (4, 'Charlie', 'Dylanson', 'https://content.wepik.com/statics/20269019/preview-page3.jpg'),
+    (5, 'David', 'Davidson', 'https://content.wepik.com/statics/20269016/preview-page1.jpg'),
+    (6, 'Emma', 'Lopez', 'https://content.wepik.com/statics/20269016/preview-page1.jpg'),
+    (7, 'Fiona', 'Shrek', 'https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcTo9tUMVlpZVjqC2ympZR0fOHZJDfmqQev8JTqDcoO6hSqk9kpCczZTDgPH_PYakXPFf6o&usqp=CAU'),
+    (8, 'George', 'Georgish', 'https://content.wepik.com/statics/21209543/preview-page6.jpg'),
+    (9, 'Hannah', 'Banana', 'https://content.wepik.com/statics/21209540/preview-page3.jpg');
+
+INSERT INTO buffspace_main.post (user_id, content, image_url, created_at)
+VALUES
+    (2, 'oh lawd he comin', 'https://i.redd.it/6uk0m6nclyd21.jpg', '2024-11-07 12:34:56'),
+    (3, 'he do a thonk', 'https://pbs.twimg.com/media/FxBERTuWYAEPqSU.jpg:large', '2024-11-05 08:22:01');
+
+INSERT INTO buffspace_main.message (from_user_id, to_user_id, content, created_at)
+VALUES
+    (4, 1, 'Two Bangs, three adderalls, one brain cell', '2024-11-02 3:33:33'),
+    (8, 1, 'Monster? More like NyQuil', '2024-11-07 12:34:56'),
+    (3, 1, 'My hummer''s in the shop', '2024-11-05 08:22:56');

@@ -441,9 +441,9 @@ app.get('/homepage', (req, res) => {
   ];
 
   const selectFriends = `
-  SELECT f.user_id_2, user_2_ranking, first_name, last_name, profile_picture_url
-  FROM buffspace_main.friend f, buffspace_main.profile pr
-  WHERE f.user_id_1 = ${user.user_id} AND f.user_id_2 = pr.user_id
+    SELECT f.user_id_2, user_2_ranking, first_name, last_name, profile_picture_url
+    FROM buffspace_main.friend f, buffspace_main.profile pr
+    WHERE f.user_id_1 = ${user.user_id} AND f.user_id_2 = pr.user_id
   `
 
   const selectPosts = `
@@ -452,6 +452,12 @@ app.get('/homepage', (req, res) => {
     FROM buffspace_main.post po, buffspace_main.profile pr
     WHERE po.user_id = pr.user_id;
     `
+
+  const selectMessages = `
+    SELECT m.from_user_id, content, created_at, first_name, last_name, profile_picture_url
+    FROM buffspace_main.message m, buffspace_main.profile pr
+    WHERE m.to_user_id = ${user.user_id} AND m.from_user_id = pr.user_id
+  `;
 
   res.render('pages/homepage', { user, posts, topFriends, recentMessages });
 });
