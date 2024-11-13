@@ -92,9 +92,12 @@ app.get('/register', (req, res) => {
   res.render('pages/signup');
 });
 
-const register = {
-  username: undefined,
-  password: undefined,
+const user = {
+    user_id: undefined,
+    username: undefined,
+    password: undefined,
+    created_at: undefined,
+    last_login: undefined,
 };
 
 app.get('/signup', (req, res) => {
@@ -113,35 +116,34 @@ app.post('/signup', (req, res) => {
 
     const [row] = await t.any(
       `SELECT * FROM buffspace_main.user WHERE username = $1`, [username]
-    );
+      );
 
     if (row || (password !== confirmPassword)) {
-      throw new Error(`choose another username`);
-    }
-    else if (password !== confirmPassword) {
-      throw new Error(`password does not match`);
+      throw new Error(`choose another username or password does not match`);
     }
 
     // There are either no prerequisites, or all have been taken.
     await t.none(
-      'INSERT INTO buffspace_main.user(username, password) VALUES ($1, $2);',
-      [username, password]
-    );
-  })
-    .then(signup => {
-      //console.info(courses);
-      res.render('pages/login', {
-        username: register.username,
-        password: register.password,
-        message: `Success`,
-      });
-    })
-    .catch(err => {
-      res.render('pages/signup', {
-        error: true,
-        message: err.message,
-      });
-    });
+        'INSERT INTO buffspace_main.user(username, password) VALUES ($1, $2);',
+          [username, password]
+        );
+      })
+        .then(signup => {
+          //console.info(courses);
+          res.render('pages/login', {
+              username: user.username,
+              password: user.password,
+              message: `Success`,
+          });
+          res.session.user = user;
+          res.session.save();
+        })
+        .catch(err => {
+          res.render('pages/signup', {
+            error: true,
+            message: err.message,
+          });
+        });
 });
 
 app.get('/logout', (req, res) => {
@@ -154,15 +156,54 @@ app.get('/logout', (req, res) => {
 });
 
 
-// -------------------------------------  ROUTES for login.hbs   ----------------------------------------------
-const user = {
-  user_id: undefined,
-  username: undefined,
-  password: undefined,
-  created_at: undefined,
-  last_login: undefined,
-};
+/*
+//for testing
+app.post('/signup', (req, res) => {
+  const username = req.body.username;
+  const password = req.body.password;
+  const confirmPassword = req.body.confirmPassword;
 
+  console.log(req.body);
+
+  db.tx(async t => {
+    // const hash = await bcrypt.hash(req.body.password, 10);
+
+    const [row] = await t.any(
+      `SELECT * FROM buffspace_main.user WHERE username = $1`, [username]
+      );
+
+    if (row || (password !== confirmPassword)) {
+      throw new Error(`choose another username or password does not match`);
+    }
+
+    // There are either no prerequisites, or all have been taken.
+    await t.none(
+        'INSERT INTO buffspace_main.user(username, password, confirm_password) VALUES ($1, $2, $3);',
+          [username, password, confirmPassword]
+        );
+      })
+        .then(signup => {
+          //console.info(courses);
+          res.status(200).json({
+            username: register.username,
+            password: register.password,
+            confirmPassword: register.confirmPassword,
+            message: 'Registration successful.',
+          });
+        })
+        .catch(err => {
+          console.log(err);
+          return res.status(400).json({
+            username: register.username,
+            password: register.password,
+            confirmPassword: register.confirmPassword,
+            message: 'Passwords do not match.',
+          });
+        });
+});
+*/
+
+// -------------------------------------  ROUTES for login.hbs   ----------------------------------------------
 app.get('/login', (req, res) => {
   res.render('pages/login');
 });
@@ -195,7 +236,7 @@ app.post('/login', (req, res) => {
 });
 
 app.get('/welcome', (req, res) => {
-  res.json({ status: 'success', message: 'Welcome!' });
+  res.json({status: 'success', message: 'Welcome!'});
 });
 
 // Authentication middleware.
@@ -213,76 +254,6 @@ app.use(auth);
 // <!-- Section 5 : Start Server-->
 // *****************************************************
 // starting the server and keeping the connection open to listen for more request
-
-//SCAFFOLDING
-app.get('/create-profile', auth, (req, res) => {
-  // Check if user already has a profile
-  const userId = req.session.user.user_id;
-  const query = `
-    SELECT * FROM buffspace_main.profile
-    WHERE user_id = $1
-  `;
-
-  db.oneOrNone(query, [userId])
-    .then(profile => {
-      if (profile) {
-        // If profile exists, redirect to profile page
-        res.redirect('/profile');
-      } else {
-        // If no profile exists, render create profile page
-        res.render('pages/create-profile', {
-          user: req.session.user
-        });
-      }
-    })
-    .catch(err => {
-      console.log(err);
-      res.redirect('/');
-    });
-});
-
-// Handle profile creation
-app.post('/create-profile', auth, (req, res) => {
-  const userId = req.session.user.user_id;
-  const {
-    first_name,
-    last_name,
-    bio,
-    graduation_year,
-    major,
-    status,
-    profile_picture_url
-  } = req.body;
-
-  const query = `
-    INSERT INTO buffspace_main.profile
-    (user_id, first_name, last_name, bio, graduation_year, major, status, profile_picture_url, last_updated)
-    VALUES ($1, $2, $3, $4, $5, $6, $7, $8, CURRENT_TIMESTAMP)
-    RETURNING *
-  `;
-
-  const values = [
-    userId,
-    first_name,
-    last_name,
-    bio,
-    graduation_year,
-    major,
-    status,
-    profile_picture_url
-  ];
-
-  db.one(query, values)
-    .then(() => {
-      res.redirect('/profile');
-    })
-    .catch(err => {
-      console.log(err);
-      res.redirect('/create-profile');
-    });
-});
-//SCAFFOLDING END
-
 
 app.get('/profile/:username?', auth, (req, res) => {
   const requestedUsername = req.params.username || req.session.user.username;
@@ -303,7 +274,7 @@ app.get('/profile/:username?', auth, (req, res) => {
     })
     .catch(err => {
       console.log(err);
-      res.redirect('/');
+      res.render('pages/create-profile');
     });
 });
 
@@ -375,6 +346,103 @@ app.post('/edit-profile', auth, (req, res) => {
       res.redirect('/edit-profile');
     });
 });
+
+const profile = {
+  profile_id: undefined,
+  user_id: undefined,
+  bio: undefined,
+  profile_picture_url: undefined,
+  first_name: undefined,
+  last_name: undefined,
+  graduation_year: undefined,
+  major: undefined,
+  song_id: undefined,
+  status: undefined,
+  last_updated: undefined,
+};
+
+//SCAFFOLDING
+app.get('/create-profile', auth, (req, res) => {
+  // Check if user already has a profile
+  const userId = req.session.user.user_id;
+  const query = `
+    SELECT * FROM buffspace_main.profile
+    WHERE user_id = $1
+  `;
+
+  db.oneOrNone(query, [userId])
+    .then(profile => {
+      if (profile) {
+        // If profile exists, redirect to profile page
+        res.redirect('/profile');
+      } else {
+        // If no profile exists, render create profile page
+        res.render('pages/create-profile', {
+          user: req.session.user
+        });
+      }
+    })
+    .catch(err => {
+      console.log(err);
+      res.redirect('/');
+    });
+});
+
+// Handle profile creation
+app.post('/create-profile', auth, (req, res) => {
+  const user_id = req.session.user.user_id;
+  const {
+    bio,
+    profile_picture_url,
+    first_name,
+    last_name,
+    graduation_year,
+    major,
+    status
+  } = req.body;
+
+  const query = `
+    INSERT INTO buffspace_main.profile
+    (user_id, bio, profile_picture_url, first_name, last_name, graduation_year, major, status)
+    VALUES ($1, $2, $3, $4, $5, $6, $7, $8)
+    RETURNING *;`;
+
+  const values = [
+    user_id,
+    bio,
+    profile_picture_url,
+    first_name,
+    last_name,
+    graduation_year,
+    major,
+    status
+  ];
+
+  db.one(query, values)
+    .then(profile => {
+      res.render('pages/profile', {
+        user_id: profile.user_id,
+        first_name: profile.first_name,
+        last_name: profile.last_name,
+        bio: profile.bio,
+        graduation_year: profile.graduation_year,
+        major: profile.major,
+        status: profile.status,
+        profile_picture_url: profile.profile_picture_url,
+        message: 'Success',
+      });
+      res.session.profile = profile;
+      res.session.save();
+    })
+    .catch(err => {
+      res.render('pages/create-profile', {
+        error: true,
+        message: err.message,
+    });
+  });
+});
+
+//SCAFFOLDING END
 
 app.get('/homepage', async (req, res) => {
   if (!req.session.user) {

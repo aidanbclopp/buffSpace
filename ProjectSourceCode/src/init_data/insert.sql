@@ -15,7 +15,7 @@ INSERT INTO buffspace_main.profile
   (user_id, bio, profile_picture_url, first_name, last_name, graduation_year, major, status)
 VALUES
   (
-    1, -- user_id (should correspond to an existing user)
+    1, -- profile_id
     'I AM CHIP', -- bio
     'https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcRmIo42UGDaWsRLggK0jDKeUhcwRe39QyC8hg&s', -- profile_picture_url
     'CHIP', -- first_name

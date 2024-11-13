@@ -1,6 +1,5 @@
-create schema buffspace_main;
+CREATE SCHEMA buffspace_main;
 
-DROP TABLE IF EXISTS buffspace_main.user;
 create table buffspace_main.user
 (
     --
@@ -34,7 +33,7 @@ create table buffspace_main.profile
     profile_id          SERIAL
         constraint profile_pk
             primary key,
-    user_id             integer                             not null
+    user_id             integer not null                             not null
         constraint profile_user_user_id_fk
             references buffspace_main.user
             on delete cascade,
