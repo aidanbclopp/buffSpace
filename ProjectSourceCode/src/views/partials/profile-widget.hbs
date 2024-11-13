@@ -1,9 +1,12 @@
 <div class="profile-widget">
-    <img src="{{user.avatar_url}}" class="profile-avatar" onerror="this.onerror=null;this.src='https://e7.pngegg.com/pngimages/926/34/png-clipart-computer-icons-user-profile-avatar-avatar-face-heroes.png';">
-    <div class="profile-details">
-        <h1>{{user.name}}</h1>
-        <p>Last Login: {{user.bio}}</p>
+    <div class="profile-header">
+        <img src="{{user.avatar_url}}" class="profile-avatar" onerror="this.onerror=null;this.src='https://e7.pngegg.com/pngimages/926/34/png-clipart-computer-icons-user-profile-avatar-avatar-face-heroes.png';">
+        <div class="profile-details">
+            <h1>{{user.name}}</h1>
+            <p>Last Login: 11/08/2024</p>
+        </div>
     </div>
+    {{> clock-widget }}
 </div>
 
 <style>
@@ -12,12 +15,16 @@
         padding: 10px;
         border-radius: 10px;
         box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
-        display: flex;
-        align-items: center;
     }
 
     .profile-widget:hover {
         transform: scale(1.02);
+    }
+
+    .profile-header {
+        display: flex;
+        align-items: center;
+        margin-bottom: 10px;
     }
 
     .profile-avatar {
@@ -25,6 +32,11 @@
         height: 80px;
         border-radius: 50%;
         margin-right: 10px;
+    }
+
+    .profile-details {
+        margin-left: 15px;
+        text-align: left;
     }
 
     .profile-details h1 {

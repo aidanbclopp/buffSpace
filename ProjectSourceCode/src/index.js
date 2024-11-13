@@ -396,6 +396,7 @@ app.get('/homepage', (req, res) => {
         avatar_url: 'https://img.freepik.com/premium-vector/boy-minimalist-line-art-icon-logo-symbol-black-color-only_925376-259120.jpg'
       },
       created_at: '12:15 PM Nov 7',
+      image_url: 'https://i.pinimg.com/736x/b5/d3/9d/b5d39d40ef1251e773f40ab613e72438.jpg',
       content: 'This is a post by Bob.'
     }
   ];
