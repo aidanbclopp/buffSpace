@@ -57,3 +57,8 @@ VALUES
     (4, 1, 'Two Bangs, three adderalls, one brain cell', '2024-11-02 3:33:33'),
     (8, 1, 'Monster? More like NyQuil', '2024-11-07 12:34:56'),
     (3, 1, 'My hummer''s in the shop', '2024-11-05 08:22:56');
+
+/* This needs to be the last part of file */
+SELECT setval('buffspace_main.user_user_id_seq', (SELECT MAX(user_id) FROM buffspace_main.user) + 1);
+SELECT setval('buffspace_main.post_post_id_seq', (SELECT MAX(post_id) FROM buffspace_main.post) + 1);
+SELECT setval('buffspace_main.profile_profile_id_seq', (SELECT MAX(profile_id) FROM buffspace_main.profile) + 1);

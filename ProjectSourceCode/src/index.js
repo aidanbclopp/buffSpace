@@ -139,6 +139,7 @@ app.post('/signup', (req, res) => {
           res.session.save();
         })
         .catch(err => {
+          console.log(err);
           res.render('pages/signup', {
             error: true,
             message: err.message,
@@ -212,8 +213,8 @@ app.get('/login', (req, res) => {
 app.post('/login', (req, res) => {
   const username = req.body.username;
   const password = req.body.password;
-  const query = 'select * from buffspace_main.user where password = $1 LIMIT 1';
-  const values = [password];
+  const query = 'select * from buffspace_main.user where username = $1 and password = $2 LIMIT 1';
+  const values = [username, password];
 
   // get the user_id based on the password
   db.one(query, values)
@@ -420,19 +421,7 @@ app.post('/create-profile', auth, (req, res) => {
 
   db.one(query, values)
     .then(profile => {
-      res.render('pages/profile', {
-        user_id: profile.user_id,
-        first_name: profile.first_name,
-        last_name: profile.last_name,
-        bio: profile.bio,
-        graduation_year: profile.graduation_year,
-        major: profile.major,
-        status: profile.status,
-        profile_picture_url: profile.profile_picture_url,
-        message: 'Success',
-      });
-      res.session.profile = profile;
-      res.session.save();
+      res.redirect('/profile');
     })
     .catch(err => {
       res.render('pages/create-profile', {
@@ -452,10 +441,14 @@ app.get('/homepage', async (req, res) => {
   const user = req.session.user;
 
   const selectProfile = `
-    SELECT * FROM buffspace_main.profile WHERE user_id = ${user.user_id};
+    SELECT * FROM buffspace_main.profile WHERE user_id = $1;
   `;
 
-  const profile = await db.one(selectProfile);
+  const profile = await db.oneOrNone(selectProfile, [user.user_id]);
+
+  if (!profile) {
+    return res.redirect('/create-profile');
+  }
 
   const selectFriends = `
     SELECT f.user_id_2, user_2_ranking, first_name, last_name, profile_picture_url
