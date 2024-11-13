@@ -1,0 +1,60 @@
+<div class="sidebar">
+    <h2>BuffCircle</h2>
+    <ul class="friends-list">
+        {{#each friends}}
+            <li class="friend">
+                <img src="{{this.profile_picture_url}}" onerror="this.onerror=null;this.src='https://e7.pngegg' +
+                 '.com/pngimages/926/34/png-clipart-computer-icons-user-profile-avatar-avatar-face-heroes.png';" class="friend-avatar">
+                <span class="friend-name">{{this.first_name}}</span>
+            </li>
+        {{/each}}
+    </ul>
+</div>
+
+<style>
+    .sidebar {
+        background-color: #f9f9f9;
+        padding: 20px;
+        border-radius: 10px;
+        box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+        margin-bottom: 30px;
+    }
+
+    .sidebar h2 {
+        margin: 0 0 10px;
+        padding: 5px;
+        font-size: 1.4rem;
+    }
+
+    .friends-list {
+        display: grid;
+        grid-template-columns: repeat(4, 1fr);
+        gap: 10px;
+        list-style: none;
+        padding: 0;
+        margin: 0;
+    }
+
+    .friend {
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+    }
+
+    .friend:hover {
+        transform: scale(1.1);
+    }
+
+    .friend-avatar {
+        width: 40px;
+        height: 40px;
+        border-radius: 50%;
+        margin-bottom: 5px;
+    }
+
+    .friend-name {
+        font-size: 1rem;
+        color: #333;
+        text-align: center;
+    }
+</style>

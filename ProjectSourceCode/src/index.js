@@ -95,7 +95,6 @@ app.get('/register', (req, res) => {
 const register = {
   username: undefined,
   password: undefined,
-  confirm_password: undefined,
 };
 
 app.get('/signup', (req, res) => {
@@ -117,13 +116,16 @@ app.post('/signup', (req, res) => {
     );
 
     if (row || (password !== confirmPassword)) {
-      throw new Error(`choose another username or password does not match`);
+      throw new Error(`choose another username`);
+    }
+    else if (password !== confirmPassword) {
+      throw new Error(`password does not match`);
     }
 
     // There are either no prerequisites, or all have been taken.
     await t.none(
-      'INSERT INTO buffspace_main.user(username, password, confirm_password) VALUES ($1, $2, $3);',
-      [username, password, confirmPassword]
+      'INSERT INTO buffspace_main.user(username, password) VALUES ($1, $2);',
+      [username, password]
     );
   })
     .then(signup => {
@@ -131,7 +133,6 @@ app.post('/signup', (req, res) => {
       res.render('pages/login', {
         username: register.username,
         password: register.password,
-        confirmPassword: register.confirmPassword,
         message: `Success`,
       });
     })
@@ -185,7 +186,7 @@ app.post('/login', (req, res) => {
       req.session.user = user;
       req.session.save();
 
-      res.redirect('/profile');
+      res.redirect('/homepage');
     })
     .catch(err => {
       console.log(err);
@@ -212,10 +213,6 @@ app.use(auth);
 // <!-- Section 5 : Start Server-->
 // *****************************************************
 // starting the server and keeping the connection open to listen for more request
-
-module.exports = app.listen(3000);
-console.log('Server is listening on port 3000');
-
 
 //SCAFFOLDING
 app.get('/create-profile', auth, (req, res) => {
@@ -378,3 +375,71 @@ app.post('/edit-profile', auth, (req, res) => {
       res.redirect('/edit-profile');
     });
 });
+
+app.get('/homepage', async (req, res) => {
+  if (!req.session.user) {
+    res.redirect('/login');
+
+  }
+  const user = req.session.user;
+
+  const selectProfile = `
+    SELECT * FROM buffspace_main.profile WHERE user_id = ${user.user_id};
+  `;
+
+  const profile = await db.one(selectProfile);
+
+  const selectFriends = `
+    SELECT f.user_id_2, user_2_ranking, first_name, last_name, profile_picture_url
+    FROM buffspace_main.friend f, buffspace_main.profile pr
+    WHERE f.user_id_1 = ${user.user_id} AND f.user_id_2 = pr.user_id
+    ORDER BY user_2_ranking DESC LIMIT 8;
+  `;
+
+  const topFriends = await db.any(selectFriends);
+
+  const selectPosts = `
+    SELECT po.user_id, content, image_url,
+           to_char(created_at, 'HH12:MI AM MM/DD/YYYY') AS created_at, first_name, last_name, 
+           profile_picture_url
+    FROM buffspace_main.post po, buffspace_main.profile pr
+    WHERE po.user_id = pr.user_id
+    ORDER BY po.created_at DESC;
+    `;
+
+  const posts = await db.any(selectPosts);
+
+  const selectMessages = `
+    SELECT m.from_user_id, content, to_char(created_at, 'HH12:MI AM MM/DD/YYYY') AS created_at, first_name, last_name, profile_picture_url
+    FROM buffspace_main.message m, buffspace_main.profile pr
+    WHERE m.to_user_id = ${user.user_id} AND m.from_user_id = pr.user_id
+  `;
+
+  const recentMessages = await db.any(selectMessages);
+
+  res.render('pages/homepage', { profile, topFriends, posts, recentMessages });
+});
+
+app.post('/posts', auth, (req, res) => {
+  const userId = req.session.user.user_id;
+  const content = req.body.content;
+
+  const query = `
+    INSERT INTO buffspace_main.post (user_id, content)
+    VALUES ($1, $2)
+  `;
+
+  const values = [userId, content];
+
+  db.query(query, values)
+      .then(result => {
+        res.redirect('/homepage');
+      })
+      .catch(err => {
+        console.log(err);
+        res.redirect('/homepage');
+      });
+});
+
+module.exports = app.listen(3000);
+console.log('Server is listening on port 3000');

@@ -1,0 +1,75 @@
+<div class="chat-widget">
+    <h2>Recent Messages</h2>
+    <div class="chat-messages">
+        {{#each messages}}
+            <div class="chat-message">
+                <div class="message-header">
+                    <img src="{{this.profile_picture_url}}" class="avatar"
+                         onerror="this
+                    .onerror=null;this.src='https://e7.pngegg.com/pngimages/926/34/png-clipart-computer-icons-user-profile-avatar-avatar-face-heroes.png';">
+                    <div class="message-details">
+                        <h3>{{this.first_name}} {{this.last_name}}</h3>
+                        <span>{{this.created_at}}</span>
+                    </div>
+                </div>
+                <div class="message-content">
+                    <p>{{this.content}}</p>
+                </div>
+            </div>
+        {{/each}}
+    </div>
+</div>
+
+<style>
+    .chat-widget {
+        background-color: #f9f9f9;
+        padding: 10px;
+        border-radius: 10px;
+        box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+        margin-bottom: 20px;
+    }
+
+    .chat-widget h2 {
+        margin: 0 0 10px;
+        padding: 5px;
+        font-size: 1.4rem;
+    }
+
+    .chat-message {
+        background-color: #fff;
+        padding: 10px;
+        border-radius: 5px;
+        box-shadow: 0 1px 2px rgba(0, 0, 0, 0.1);
+        margin-bottom: 10px;
+    }
+
+    .message-header {
+        display: flex;
+        align-items: center;
+    }
+
+    .message-details {
+        margin-left: 10px;
+    }
+
+    .message-details h3 {
+        margin: 0;
+        font-size: 1rem;
+    }
+
+    .message-details span {
+        font-size: 0.8rem;
+        color: #666;
+    }
+
+    .message-content p {
+        margin: 5px 0 0;
+        font-size: 0.9rem;
+    }
+
+    .avatar {
+        width: 40px;
+        height: 40px;
+        border-radius: 50%;
+    }
+</style>

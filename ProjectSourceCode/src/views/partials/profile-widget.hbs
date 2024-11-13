@@ -1,0 +1,58 @@
+<div class="profile-widget">
+    <div class="profile-header">
+        <img src="{{profile.profile_picture_url}}" class="profile-avatar" onerror="this.onerror=null;
+        this
+        .src='https://e7' +
+         '.pngegg' +
+         '.com/pngimages/926/34/png-clipart-computer-icons-user-profile-avatar-avatar-face-heroes.png';">
+        <div class="profile-details">
+            <h1>{{profile.first_name}} {{profile.last_name}}</h1>
+            <h6>{{profile.major}} {{profile.graduation_year}}</h6>
+            <p>{{profile.bio}}</p>
+            <p></p>
+        </div>
+    </div>
+    {{> clock-widget }}
+</div>
+
+<style>
+    .profile-widget {
+        background-color: #f9f9f9;
+        padding: 10px;
+        border-radius: 10px;
+        box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+    }
+
+    .profile-widget:hover {
+        transform: scale(1.02);
+    }
+
+    .profile-header {
+        display: flex;
+        align-items: center;
+        margin-bottom: 10px;
+    }
+
+    .profile-avatar {
+        width: 80px;
+        height: 80px;
+        border-radius: 50%;
+        margin-right: 10px;
+    }
+
+    .profile-details {
+        margin-left: 15px;
+        text-align: left;
+    }
+
+    .profile-details h1 {
+        margin: 0;
+        font-size: 1.5rem;
+    }
+
+    .profile-details p {
+        margin: 5px 0 0;
+        font-size: 0.9rem;
+        color: #666;
+    }
+</style>

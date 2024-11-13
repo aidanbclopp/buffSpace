@@ -9,17 +9,10 @@ create table buffspace_main.user
             primary key,
     username   varchar(50)                         not null,
     password   varchar(255)                        not null,
-    confirm_password varchar(255) not null,
     created_at timestamp default current_timestamp not null,
-    last_login timestamp default current_timestamp not null
-);
-
-DROP TABLE IF EXISTS buffspace_main.register;
-create table buffspace_main.register
-(
-    username varchar(50) primary key,
-    password varchar(255) not null,
-    confirm_password varchar(255) not null
+    last_login timestamp default current_timestamp not null,
+    constraint username_ak
+        unique (username)
 );
 
 create table buffspace_main.profile_song
@@ -38,7 +31,7 @@ create table buffspace_main.profile_song
 
 create table buffspace_main.profile
 (
-    profile_id          integer
+    profile_id          SERIAL
         constraint profile_pk
             primary key,
     user_id             integer                             not null
@@ -61,7 +54,7 @@ create table buffspace_main.profile
 
 create table buffspace_main.post
 (
-    post_id    integer
+    post_id    SERIAL
         constraint post_pk
             primary key,
     user_id    integer                                not null
@@ -75,7 +68,7 @@ create table buffspace_main.post
 
 create table buffspace_main.comment
 (
-    comment_id integer
+    comment_id SERIAL
         constraint comment_pk
             primary key,
     post_id    integer                             not null
@@ -103,4 +96,22 @@ create table buffspace_main.friend
     user_1_ranking smallint,
     user_2_ranking smallint,
     created_at     timestamp default current_timestamp not null
+);
+
+create table buffspace_main.message
+(
+    message_id      SERIAL
+        constraint message_pk
+            primary key,
+    from_user_id integer
+        constraint message_user_user_id_fk_2
+            references buffspace_main."user"
+            on update cascade on delete set null,
+    to_user_id   integer
+        constraint message_user_user_id_fk
+            references buffspace_main."user"
+            on update set null on delete set null,
+    content      varchar(500) default ''                not null,
+    image_url    integer,
+    created_at   timestamp    default current_timestamp not null
 );
