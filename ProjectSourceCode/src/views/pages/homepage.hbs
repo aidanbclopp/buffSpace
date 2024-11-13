@@ -1,8 +1,8 @@
 <div class="homepage-container">
-    <h1>Welcome, {{user.name}}!</h1>
     <div class="main-content">
         <div class="content-left">
-            {{> buffcircle friends=topFriends}}
+            <div class="sidebar-element">{{> profile-widget user=user}}</div>
+            <div class="sidebar-element">{{> buffcircle-widget friends=topFriends}}</div>
         </div>
         <div class="content-right">
             <div class="post-widget">
@@ -24,8 +24,21 @@
                 </form>
             </div>
 
-            <div class="recent-posts">
-                <h2>Recent Posts</h2>
+            <div class="customize-links">
+                <div class="filter-links">
+                    <span>Show me:</span>
+                    <a href="#" class="filter-link">All Friends</a> |
+                    <a href="#" class="filter-link">Just Me</a> |
+                    <a href="#" class="filter-link">BuffSpace</a>
+                </div>
+                <div class="sort-links">
+                    <span>Sort by:</span>
+                    <a href="#" class="sort-link">Date</a> |
+                    <a href="#" class="sort-link">Random</a>
+                </div>
+            </div>
+
+            <div style="margin-top: 30px;">
                 <div class="posts-list">
                     {{#each posts}}
                         <div class="post">
@@ -138,17 +151,13 @@
     }
 
     .btn-primary {
-        background-color: #007bff;
+        background-color: rgb(215, 183, 27);
         color: white;
         padding: 10px 20px;
         border: none;
         border-radius: 5px;
         cursor: pointer;
         font-size: 1rem;
-    }
-
-    .recent-posts {
-        margin-top: 30px;
     }
 
     .posts-list {
@@ -184,5 +193,28 @@
         height: 50px;
         border-radius: 50%;
         margin-right: 15px;
+    }
+
+    .sidebar-element {
+        padding: 5px;
+        margin-bottom: 15px;
+    }
+
+    .customize-links {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        padding: 5px;
+        text-align: start;
+    }
+
+    .filter-link, .sort-link {
+        color: rgb(215, 183, 27);
+        text-decoration: none;
+        margin: 0 5px;
+    }
+
+    .filter-link:hover, .sort-link:hover {
+        text-decoration: underline;
     }
 </style>

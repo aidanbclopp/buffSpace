@@ -400,14 +400,14 @@ app.get('/homepage', (req, res) => {
   ];
 
   const topFriends = [
-    { name: 'Friend 1', avatar_url: '' },
-    { name: 'Friend 2', avatar_url: '' },
-    { name: 'Friend 3', avatar_url: '' },
-    { name: 'Friend 4', avatar_url: '' },
-    { name: 'Friend 5', avatar_url: '' },
-    { name: 'Friend 6', avatar_url: '' },
-    { name: 'Friend 7', avatar_url: '' },
-    { name: 'Friend 8', avatar_url: '' }
+    { name: 'Alice', avatar_url: 'https://img.freepik.com/premium-vector/avatar-minimalist-line-art-icon-logo-symbol-black-color-only_925376-257641.jpg' },
+    { name: 'Bob', avatar_url: 'https://img.freepik.com/premium-vector/boy-minimalist-line-art-icon-logo-symbol-black-color-only_925376-259120.jpg' },
+    { name: 'Charlie', avatar_url: 'https://content.wepik.com/statics/20269019/preview-page3.jpg' },
+    { name: 'David', avatar_url: 'https://content.wepik.com/statics/20269016/preview-page1.jpg' },
+    { name: 'Emma', avatar_url: 'https://content.wepik.com/statics/21209542/preview-page5.jpg' },
+    { name: 'Fiona', avatar_url: 'https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcTo9tUMVlpZVjqC2ympZR0fOHZJDfmqQev8JTqDcoO6hSqk9kpCczZTDgPH_PYakXPFf6o&usqp=CAU' },
+    { name: 'George', avatar_url: 'https://content.wepik.com/statics/21209543/preview-page6.jpg' },
+    { name: 'Hannah', avatar_url: 'https://content.wepik.com/statics/21209540/preview-page3.jpg' }
   ];
   res.render('pages/homepage', { user, posts, topFriends });
 });
