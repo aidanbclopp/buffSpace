@@ -174,28 +174,42 @@ app.get('/login', (req, res) => {
 app.post('/login', (req, res) => {
   const username = req.body.username;
   const password = req.body.password;
-  const query = 'select * from buffspace_main.user where password = $1 LIMIT 1';
-  const values = [password];
+  const query = 'SELECT * FROM buffspace_main.user WHERE username = $1 LIMIT 1';
+  const values = [username];
 
-  // get the user_id based on the password
+  // Get the user based on the username
   db.one(query, values)
     .then(data => {
-      user.user_id = data.user_id;
-      user.username = username;
-      user.password = data.password;
-      user.created_at = data.created_at;
-      user.last_login = data.last_login;
-
-      req.session.user = user;
-      req.session.save();
-
-      res.redirect('/profile');
+      if (data.password === password) {  // Compare plaintext passwords
+        req.session.user = {
+          user_id: data.user_id,
+          username: data.username,
+          created_at: data.created_at,
+          last_login: data.last_login,
+        };
+        req.session.save();
+        return res.status(200).json({
+          status: 'success',
+          message: 'Login successful.',
+          session: req.session.user
+        });
+      } else {
+        return res.status(401).json({
+          status: 'failure',
+          message: 'Invalid username or password.'
+        });
+      }
     })
     .catch(err => {
       console.log(err);
       res.redirect('/login');
+      return res.status(401).json({
+        status: 'failure',
+        message: 'Invalid username or password.'
+      });
     });
 });
+
 
 app.get('/welcome', (req, res) => {
   res.json({ status: 'success', message: 'Welcome!' });
