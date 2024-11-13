@@ -14,14 +14,6 @@ create table buffspace_main.user
     last_login timestamp default current_timestamp not null
 );
 
-DROP TABLE IF EXISTS buffspace_main.register;
-create table buffspace_main.register
-(
-    username varchar(50) primary key,
-    password varchar(255) not null,
-    confirm_password varchar(255) not null
-);
-
 create table buffspace_main.profile_song
 (
     song_id           integer

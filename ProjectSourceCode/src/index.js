@@ -213,10 +213,6 @@ app.use(auth);
 // *****************************************************
 // starting the server and keeping the connection open to listen for more request
 
-module.exports = app.listen(3000);
-console.log('Server is listening on port 3000');
-
-
 //SCAFFOLDING
 app.get('/create-profile', auth, (req, res) => {
   // Check if user already has a profile
@@ -378,3 +374,26 @@ app.post('/edit-profile', auth, (req, res) => {
       res.redirect('/edit-profile');
     });
 });
+
+app.get('/homepage', (req, res) => {
+  const user = {
+    name: 'John Doe'
+  };
+
+  const posts = [
+    {
+      user: { name: 'Alice' },
+      created_at: '2024-11-08 00:28:31',
+      content: 'This is a post by Alice.'
+    },
+    {
+      user: { name: 'Bob' },
+      created_at: '2024-11-07 12:15:45',
+      content: 'This is a post by Bob.'
+    }
+  ];
+  res.render('pages/homepage', { user, posts });
+});
+
+module.exports = app.listen(3000);
+console.log('Server is listening on port 3000');
