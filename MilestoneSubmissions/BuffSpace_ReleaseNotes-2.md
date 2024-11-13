@@ -31,6 +31,18 @@
    - Updated profile page styling to match Login/SignUp design language
    - Implemented button layout improvements
 
+### Home Page
+
+- Implemented the home page for users to land on and view posts
+  - A sidebar that shows:
+    - The user's profile picture and profile details along with an animated clock
+    - The BuffCircle (top 8 friends)
+    - The most recent messages
+  - A main wall that shows:
+    - The most recent posts with text content and images if included
+    - A text area for creating a new post
+      - *Note: The ability to upload images or songs is set for a future release*
+
 ## Known Issues
 
 ### User Creation
