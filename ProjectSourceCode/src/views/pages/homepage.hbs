@@ -1,44 +1,50 @@
 <div class="homepage-container">
     <h1>Welcome, {{user.name}}!</h1>
-
-    <div class="post-widget">
-        <form action="/posts" method="POST" class="post-form">
-            <div class="form-group">
-                <textarea name="content" class="form-control" placeholder="What's on your mind?" required></textarea>
-            </div>
-            <div class="form-actions">
-                <div class="icon-buttons">
-                    <button type="button" class="icon-btn">
-                        <i class="bi bi-camera-fill" style="font-size: 32px"></i>
-                    </button>
-                    <button type="button" class="icon-btn">
-                        <i class="bi bi-music-note-list" style="font-size: 32px"></i>
-                    </button>
-                </div>
-                <button type="submit" class="btn-primary">Share</button>
-            </div>
-        </form>
-    </div>
-
-    <div class="recent-posts">
-        <h2>Recent Posts</h2>
-        <div class="posts-list">
-            {{#each posts}}
-                <div class="post">
-                    <div class="post-header">
-                        <img src="{{this.user.avatar_url}}" alt="{{this.user.name}}'s avatar" class="avatar" onerror="this.onerror=null;this.src='https://e7.pngegg.com/pngimages/926/34/png-clipart-computer-icons-user-profile-avatar-avatar-face-heroes.png';">
-                        <div class="post-details">
-                            <h3>{{this.user.name}}</h3>
+    <div class="main-content">
+        <div class="content-left">
+            {{> buffcircle friends=topFriends}}
+        </div>
+        <div class="content-right">
+            <div class="post-widget">
+                <form action="/posts" method="POST" class="post-form">
+                    <div class="form-group">
+                        <textarea name="content" class="form-control" placeholder="What's on your mind?" required></textarea>
+                    </div>
+                    <div class="form-actions">
+                        <div class="icon-buttons">
+                            <button type="button" class="icon-btn">
+                                <i class="bi bi-camera-fill" style="font-size: 32px"></i>
+                            </button>
+                            <button type="button" class="icon-btn">
+                                <i class="bi bi-music-note-list" style="font-size: 32px"></i>
+                            </button>
                         </div>
+                        <button type="submit" class="btn-primary">Share</button>
                     </div>
-                    <div class="post-content">
-                        <p>{{this.content}}</p>
-                    </div>
-                    <div class="post-meta">
-                        <span>Posted at {{this.created_at}}</span>
-                    </div>
+                </form>
+            </div>
+
+            <div class="recent-posts">
+                <h2>Recent Posts</h2>
+                <div class="posts-list">
+                    {{#each posts}}
+                        <div class="post">
+                            <div class="post-header">
+                                <img src="{{this.user.avatar_url}}" alt="{{this.user.name}}'s avatar" class="avatar" onerror="this.onerror=null;this.src='https://e7.pngegg.com/pngimages/926/34/png-clipart-computer-icons-user-profile-avatar-avatar-face-heroes.png';">
+                                <div class="post-details">
+                                    <h3>{{this.user.name}}</h3>
+                                </div>
+                            </div>
+                            <div class="post-content">
+                                <p>{{this.content}}</p>
+                            </div>
+                            <div class="post-meta">
+                                <span>Posted at {{this.created_at}}</span>
+                            </div>
+                        </div>
+                    {{/each}}
                 </div>
-            {{/each}}
+            </div>
         </div>
     </div>
 </div>
@@ -57,13 +63,27 @@
         min-height: 100vh;
     }
 
+    .main-content {
+        display: flex;
+    }
+
+    .content-left {
+        flex: 1;
+        max-width: 35%;
+        margin-right: 20px;
+    }
+
+    .content-right {
+        flex: 2;
+    }
+
     .homepage-container {
         background-color: rgba(255, 255, 255, 0.9);
         border-radius: 15px;
         box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
         padding: 30px;
         width: 100%;
-        max-width: 50%;
+        max-width: 80%;
         box-sizing: border-box;
         margin: auto;
         transition: transform 0.3s ease-in-out;

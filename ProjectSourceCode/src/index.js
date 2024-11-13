@@ -398,7 +398,18 @@ app.get('/homepage', (req, res) => {
       content: 'This is a post by Bob.'
     }
   ];
-  res.render('pages/homepage', { user, posts });
+
+  const topFriends = [
+    { name: 'Friend 1', avatar_url: '' },
+    { name: 'Friend 2', avatar_url: '' },
+    { name: 'Friend 3', avatar_url: '' },
+    { name: 'Friend 4', avatar_url: '' },
+    { name: 'Friend 5', avatar_url: '' },
+    { name: 'Friend 6', avatar_url: '' },
+    { name: 'Friend 7', avatar_url: '' },
+    { name: 'Friend 8', avatar_url: '' }
+  ];
+  res.render('pages/homepage', { user, posts, topFriends });
 });
 
 module.exports = app.listen(3000);
