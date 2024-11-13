@@ -49,6 +49,11 @@
                                     <h3>{{this.user.name}}</h3>
                                 </div>
                             </div>
+                            {{#if this.image_url}}
+                                <div class="post-image">
+                                    <img src="{{this.image_url}}" alt="Post image" onerror="this.onerror=null;this.src='https://via.placeholder.com/150';">
+                                </div>
+                            {{/if}}
                             <div class="post-content">
                                 <p>{{this.content}}</p>
                             </div>
@@ -162,7 +167,6 @@
     }
 
     .posts-list {
-        max-height: 400px;
         overflow-y: auto;
     }
 
@@ -187,6 +191,13 @@
     .post-meta {
         margin-top: 10px;
         color: #666;
+    }
+
+    .post-image img {
+        max-width: 50%;
+        object-fit: cover;
+        border-radius: 10px;
+        margin-bottom: 10px;
     }
 
     .avatar {
