@@ -10,10 +10,9 @@ VALUES
   );
 
 INSERT INTO buffspace_main.profile
-  (profile_id, user_id, bio, profile_picture_url, first_name, last_name, graduation_year, major, song_id, status, last_updated)
+  (user_id, bio, profile_picture_url, first_name, last_name, graduation_year, major, song_id, status, last_updated)
 VALUES
   (
-    1, -- profile_id
     1, -- user_id (should correspond to an existing user)
     'I AM CHIP', -- bio
     'https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcRmIo42UGDaWsRLggK0jDKeUhcwRe39QyC8hg&s', -- profile_picture_url

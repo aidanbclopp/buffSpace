@@ -92,17 +92,18 @@ app.get('/register', (req, res) => {
   res.render('pages/signup');
 });
 
-const register = {
+const user = {
+  user_id: undefined,
   username: undefined,
   password: undefined,
-  confirm_password: undefined,
+  created_at: undefined,
+  last_login: undefined,
 };
 
 app.get('/signup', (req, res) => {
     res.render('pages/signup');
 });
 
-/*
 app.post('/signup', (req, res) => {
   const username = req.body.username;
   const password = req.body.password;
@@ -130,11 +131,13 @@ app.post('/signup', (req, res) => {
         .then(signup => {
           //console.info(courses);
           res.render('pages/login', {
-            username: register.username,
-            password: register.password,
-            confirmPassword: register.confirmPassword,
+            username: user.username,
+            password: user.password,
+            confirmPassword: user.confirmPassword,
             message: 'Success',
           });
+          res.session.user = user;
+          res.session.save();
         })
         .catch(err => {
           res.render('pages/signup', {
@@ -143,8 +146,8 @@ app.post('/signup', (req, res) => {
           });
         });
 });
-*/
 
+/*
 //for testing
 app.post('/signup', (req, res) => {
   const username = req.body.username;
@@ -189,15 +192,9 @@ app.post('/signup', (req, res) => {
           });
         });
 });
+*/
 
 // -------------------------------------  ROUTES for login.hbs   ----------------------------------------------
-const user = {
-  user_id: undefined,
-  username: undefined,
-  password: undefined,
-  created_at: undefined,
-  last_login: undefined,
-};
 
 app.get('/login', (req, res) => {
   res.render('pages/login');
@@ -221,7 +218,7 @@ app.post('/login', (req, res) => {
       req.session.user = user;
       req.session.save();
 
-      res.redirect('/profile');
+      res.redirect('/');
     })
     .catch(err => {
       console.log(err);
@@ -243,7 +240,6 @@ const auth = (req, res, next) => {
 
 app.use(auth);
 
-
 // *****************************************************
 // <!-- Section 5 : Start Server-->
 // *****************************************************
@@ -251,77 +247,6 @@ app.use(auth);
 
 module.exports = app.listen(3000);
 console.log('Server is listening on port 3000');
-
-
-//SCAFFOLDING
-app.get('/create-profile', auth, (req, res) => {
-  // Check if user already has a profile
-  const userId = req.session.user.user_id;
-  const query = `
-    SELECT * FROM buffspace_main.profile
-    WHERE user_id = $1
-  `;
-
-  db.oneOrNone(query, [userId])
-    .then(profile => {
-      if (profile) {
-        // If profile exists, redirect to profile page
-        res.redirect('/profile');
-      } else {
-        // If no profile exists, render create profile page
-        res.render('pages/create-profile', {
-          user: req.session.user
-        });
-      }
-    })
-    .catch(err => {
-      console.log(err);
-      res.redirect('/');
-    });
-});
-
-// Handle profile creation
-app.post('/create-profile', auth, (req, res) => {
-  const userId = req.session.user.user_id;
-  const {
-    first_name,
-    last_name,
-    bio,
-    graduation_year,
-    major,
-    status,
-    profile_picture_url
-  } = req.body;
-
-  const query = `
-    INSERT INTO buffspace_main.profile
-    (user_id, first_name, last_name, bio, graduation_year, major, status, profile_picture_url, last_updated)
-    VALUES ($1, $2, $3, $4, $5, $6, $7, $8, CURRENT_TIMESTAMP)
-    RETURNING *
-  `;
-
-  const values = [
-    userId,
-    first_name,
-    last_name,
-    bio,
-    graduation_year,
-    major,
-    status,
-    profile_picture_url
-  ];
-
-  db.one(query, values)
-    .then(() => {
-      res.redirect('/profile');
-    })
-    .catch(err => {
-      console.log(err);
-      res.redirect('/create-profile');
-    });
-});
-//SCAFFOLDING END
-
 
 app.get('/profile/:username?', auth, (req, res) => {
   const requestedUsername = req.params.username || req.session.user.username;
@@ -342,7 +267,7 @@ app.get('/profile/:username?', auth, (req, res) => {
     })
     .catch(err => {
       console.log(err);
-      res.redirect('/');
+      res.render('pages/create-profile');
     });
 });
 
@@ -414,3 +339,100 @@ app.post('/edit-profile', auth, (req, res) => {
       res.redirect('/edit-profile');
     });
 });
+
+const profile = {
+  profile_id: undefined,
+  user_id: undefined,
+  bio: undefined,
+  profile_picture_url: undefined,
+  first_name: undefined,
+  last_name: undefined,
+  graduation_year: undefined,
+  major: undefined,
+  song_id: undefined,
+  status: undefined,
+  last_updated: undefined,
+};
+
+//SCAFFOLDING
+app.get('/create-profile', auth, (req, res) => {
+  // Check if user already has a profile
+  const userId = req.session.user.user_id;
+  const query = `
+    SELECT * FROM buffspace_main.profile
+    WHERE user_id = $1
+  `;
+
+  db.oneOrNone(query, [userId])
+    .then(profile => {
+      if (profile) {
+        // If profile exists, redirect to profile page
+        res.redirect('/profile');
+      } else {
+        // If no profile exists, render create profile page
+        res.render('pages/create-profile', {
+          user: req.session.user
+        });
+      }
+    })
+    .catch(err => {
+      console.log(err);
+      res.redirect('/');
+    });
+});
+
+// Handle profile creation
+app.post('/create-profile', auth, (req, res) => {
+  const user_id = req.session.user.user_id;
+  const {
+    bio,
+    profile_picture_url,
+    first_name,
+    last_name,
+    graduation_year,
+    major,
+    status
+  } = req.body;
+
+  const query = `
+    INSERT INTO buffspace_main.profile
+    (user_id, bio, profile_picture_url, first_name, last_name, graduation_year, major, status)
+    VALUES ($1, $2, $3, $4, $5, $6, $7, $8)
+    RETURNING *;`;
+
+  const values = [
+    user_id,
+    bio,
+    profile_picture_url,
+    first_name,
+    last_name,
+    graduation_year,
+    major,
+    status
+  ];
+
+  db.one(query, values)
+    .then(profile => {
+      res.render('pages/profile', {
+        user_id: profile.user_id,
+        first_name: profile.first_name,
+        last_name: profile.last_name,
+        bio: profile.bio,
+        graduation_year: profile.graduation_year,
+        major: profile.major,
+        status: profile.status,
+        profile_picture_url: profile.profile_picture_url,
+        message: 'Success',
+      });
+      res.session.profile = profile;
+      res.session.save();
+    })
+    .catch(err => {
+      res.render('pages/create-profile', {
+        error: true,
+        message: err.message,
+    });
+  });
+});
+
+//SCAFFOLDING END
