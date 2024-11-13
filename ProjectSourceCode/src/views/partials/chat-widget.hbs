@@ -4,10 +4,12 @@
         {{#each messages}}
             <div class="chat-message">
                 <div class="message-header">
-                    <img src="{{this.user.avatar_url}}" alt="{{this.user.name}}'s avatar" class="avatar" onerror="this.onerror=null;this.src='https://e7.pngegg.com/pngimages/926/34/png-clipart-computer-icons-user-profile-avatar-avatar-face-heroes.png';">
+                    <img src="{{this.profile_picture_url}}" class="avatar"
+                         onerror="this
+                    .onerror=null;this.src='https://e7.pngegg.com/pngimages/926/34/png-clipart-computer-icons-user-profile-avatar-avatar-face-heroes.png';">
                     <div class="message-details">
-                        <h3>{{this.user.name}}</h3>
-                        <span>{{this.timestamp}}</span>
+                        <h3>{{this.first_name}} {{this.last_name}}</h3>
+                        <span>{{this.created_at}}</span>
                     </div>
                 </div>
                 <div class="message-content">

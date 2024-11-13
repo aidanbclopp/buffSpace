@@ -36,6 +36,17 @@ VALUES
     (8, 'George', 'Georgish', 'https://content.wepik.com/statics/21209543/preview-page6.jpg'),
     (9, 'Hannah', 'Banana', 'https://content.wepik.com/statics/21209540/preview-page3.jpg');
 
+INSERT INTO buffspace_main.friend (user_id_1, user_id_2, user_1_ranking, user_2_ranking)
+VALUES
+    (1, 2, 1, 1),
+    (1, 3, 1, 2),
+    (1, 4, 1, 3),
+    (1, 5, 1, 4),
+    (1, 6, 1, 5),
+    (1, 7, 1, 6),
+    (1, 8, 1, 7),
+    (1, 9, 1, 8);
+
 INSERT INTO buffspace_main.post (user_id, content, image_url, created_at)
 VALUES
     (2, 'oh lawd he comin', 'https://i.redd.it/6uk0m6nclyd21.jpg', '2024-11-07 12:34:56'),

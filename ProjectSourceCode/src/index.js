@@ -376,90 +376,47 @@ app.post('/edit-profile', auth, (req, res) => {
     });
 });
 
-app.get('/homepage', (req, res) => {
-  const user = {
-    name: 'John Doe'
-  };
+app.get('/homepage', async (req, res) => {
+  if (!req.session.user) {
+    res.redirect('/login');
 
-  const posts = [
-    {
-      user: {
-        name: 'Alice Smith',
-        avatar_url: 'https://img.freepik.com/premium-vector/avatar-minimalist-line-art-icon-logo-symbol-black-color-only_925376-257641.jpg'
-      },
-      created_at: '12:28 AM Nov 8',
-      image_url: 'https://i.redd.it/6uk0m6nclyd21.jpg',
-      content: 'oh lawd he comin'
-    },
-    {
-      user: {
-        name: 'Bob Johnson',
-        avatar_url: 'https://img.freepik.com/premium-vector/boy-minimalist-line-art-icon-logo-symbol-black-color-only_925376-259120.jpg'
-      },
-      created_at: '12:15 PM Nov 7',
-      image_url: 'https://pbs.twimg.com/media/FxBERTuWYAEPqSU.jpg:large',
-      content: 'he do a thonk'
-    }
-  ];
+  }
+  const user = req.session.user;
 
-  const topFriends = [
-    { name: 'Alice', avatar_url: 'https://img.freepik.com/premium-vector/avatar-minimalist-line-art-icon-logo-symbol-black-color-only_925376-257641.jpg' },
-    { name: 'Bob', avatar_url: 'https://img.freepik.com/premium-vector/boy-minimalist-line-art-icon-logo-symbol-black-color-only_925376-259120.jpg' },
-    { name: 'Charlie', avatar_url: 'https://content.wepik.com/statics/20269019/preview-page3.jpg' },
-    { name: 'David', avatar_url: 'https://content.wepik.com/statics/20269016/preview-page1.jpg' },
-    { name: 'Emma', avatar_url: 'https://content.wepik.com/statics/21209542/preview-page5.jpg' },
-    { name: 'Fiona', avatar_url: 'https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcTo9tUMVlpZVjqC2ympZR0fOHZJDfmqQev8JTqDcoO6hSqk9kpCczZTDgPH_PYakXPFf6o&usqp=CAU' },
-    { name: 'George', avatar_url: 'https://content.wepik.com/statics/21209543/preview-page6.jpg' },
-    { name: 'Hannah', avatar_url: 'https://content.wepik.com/statics/21209540/preview-page3.jpg' }
-  ];
+  const selectProfile = `
+    SELECT * FROM buffspace_main.profile WHERE user_id = ${user.user_id};
+  `;
 
-  const recentMessages = [
-    {
-      user: {
-        avatar_url: 'https://content.wepik.com/statics/20269019/preview-page3.jpg',
-        name: 'Charlie Dylanson'
-      },
-      timestamp: '10:30 AM',
-      content: 'Sleep? BuffSpace never sleeps!'
-    },
-    {
-      user: {
-        avatar_url: 'https://content.wepik.com/statics/21209543/preview-page6.jpg',
-        name: 'George Georgish'
-      },
-      timestamp: '10:32 AM',
-      content: 'I need more caffeine.'
-    },
-    {
-      user: {
-        avatar_url: 'https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcRmIo42UGDaWsRLggK0jDKeUhcwRe39QyC8hg&s',
-        name: 'Chip'
-      },
-      timestamp: '10:35 AM',
-      content: 'Hey, what have you been up to?'
-    }
-  ];
+  const profile = await db.one(selectProfile);
 
   const selectFriends = `
     SELECT f.user_id_2, user_2_ranking, first_name, last_name, profile_picture_url
     FROM buffspace_main.friend f, buffspace_main.profile pr
     WHERE f.user_id_1 = ${user.user_id} AND f.user_id_2 = pr.user_id
-  `
+    ORDER BY user_2_ranking DESC LIMIT 8;
+  `;
+
+  const topFriends = await db.any(selectFriends);
 
   const selectPosts = `
-    SELECT po.user_id, content, image_url, created_at, first_name, last_name, 
+    SELECT po.user_id, content, image_url,
+           to_char(created_at, 'HH12:MI AM MM/DD/YYYY') AS created_at, first_name, last_name, 
            profile_picture_url
     FROM buffspace_main.post po, buffspace_main.profile pr
     WHERE po.user_id = pr.user_id;
-    `
+    `;
+
+  const posts = await db.any(selectPosts);
 
   const selectMessages = `
-    SELECT m.from_user_id, content, created_at, first_name, last_name, profile_picture_url
+    SELECT m.from_user_id, content, to_char(created_at, 'HH12:MI AM MM/DD/YYYY') AS created_at, first_name, last_name, profile_picture_url
     FROM buffspace_main.message m, buffspace_main.profile pr
     WHERE m.to_user_id = ${user.user_id} AND m.from_user_id = pr.user_id
   `;
 
-  res.render('pages/homepage', { user, posts, topFriends, recentMessages });
+  const recentMessages = await db.any(selectMessages);
+
+  res.render('pages/homepage', { profile, topFriends, posts, recentMessages });
 });
 
 module.exports = app.listen(3000);
