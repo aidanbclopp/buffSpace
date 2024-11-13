@@ -186,7 +186,7 @@ app.post('/login', (req, res) => {
       req.session.user = user;
       req.session.save();
 
-      res.redirect('/profile');
+      res.redirect('/homepage');
     })
     .catch(err => {
       console.log(err);
@@ -403,7 +403,8 @@ app.get('/homepage', async (req, res) => {
            to_char(created_at, 'HH12:MI AM MM/DD/YYYY') AS created_at, first_name, last_name, 
            profile_picture_url
     FROM buffspace_main.post po, buffspace_main.profile pr
-    WHERE po.user_id = pr.user_id;
+    WHERE po.user_id = pr.user_id
+    ORDER BY po.created_at DESC;
     `;
 
   const posts = await db.any(selectPosts);
@@ -417,6 +418,27 @@ app.get('/homepage', async (req, res) => {
   const recentMessages = await db.any(selectMessages);
 
   res.render('pages/homepage', { profile, topFriends, posts, recentMessages });
+});
+
+app.post('/posts', auth, (req, res) => {
+  const userId = req.session.user.user_id;
+  const content = req.body.content;
+
+  const query = `
+    INSERT INTO buffspace_main.post (user_id, content)
+    VALUES ($1, $2)
+  `;
+
+  const values = [userId, content];
+
+  db.query(query, values)
+      .then(result => {
+        res.redirect('/homepage');
+      })
+      .catch(err => {
+        console.log(err);
+        res.redirect('/homepage');
+      });
 });
 
 module.exports = app.listen(3000);
