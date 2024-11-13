@@ -4,3 +4,5 @@
 *.xml
 # Node files
 /ProjectSourceCode/node_modules/
+*.meta
+*.zip
