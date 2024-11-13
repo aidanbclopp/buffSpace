@@ -95,7 +95,6 @@ app.get('/register', (req, res) => {
 const register = {
   username: undefined,
   password: undefined,
-  confirm_password: undefined,
 };
 
 app.get('/signup', (req, res) => {
@@ -117,13 +116,16 @@ app.post('/signup', (req, res) => {
     );
 
     if (row || (password !== confirmPassword)) {
-      throw new Error(`choose another username or password does not match`);
+      throw new Error(`choose another username`);
+    }
+    else if (password !== confirmPassword) {
+      throw new Error(`password does not match`);
     }
 
     // There are either no prerequisites, or all have been taken.
     await t.none(
-      'INSERT INTO buffspace_main.user(username, password, confirm_password) VALUES ($1, $2, $3);',
-      [username, password, confirmPassword]
+      'INSERT INTO buffspace_main.user(username, password) VALUES ($1, $2);',
+      [username, password]
     );
   })
     .then(signup => {
@@ -131,7 +133,6 @@ app.post('/signup', (req, res) => {
       res.render('pages/login', {
         username: register.username,
         password: register.password,
-        confirmPassword: register.confirmPassword,
         message: `Success`,
       });
     })
@@ -387,8 +388,8 @@ app.get('/homepage', (req, res) => {
         avatar_url: 'https://img.freepik.com/premium-vector/avatar-minimalist-line-art-icon-logo-symbol-black-color-only_925376-257641.jpg'
       },
       created_at: '12:28 AM Nov 8',
-      image_url: 'https://pbs.twimg.com/media/Fz63uwYWwAA4VQV.jpg',
-      content: 'This is a post by Alice.'
+      image_url: 'https://i.redd.it/6uk0m6nclyd21.jpg',
+      content: 'oh lawd he comin'
     },
     {
       user: {
@@ -396,8 +397,8 @@ app.get('/homepage', (req, res) => {
         avatar_url: 'https://img.freepik.com/premium-vector/boy-minimalist-line-art-icon-logo-symbol-black-color-only_925376-259120.jpg'
       },
       created_at: '12:15 PM Nov 7',
-      image_url: 'https://i.pinimg.com/736x/b5/d3/9d/b5d39d40ef1251e773f40ab613e72438.jpg',
-      content: 'This is a post by Bob.'
+      image_url: 'https://pbs.twimg.com/media/FxBERTuWYAEPqSU.jpg:large',
+      content: 'he do a thonk'
     }
   ];
 
@@ -438,6 +439,19 @@ app.get('/homepage', (req, res) => {
       content: 'Hey, what have you been up to?'
     }
   ];
+
+  const selectFriends = `
+  SELECT f.user_id_2, user_2_ranking, first_name, last_name, profile_picture_url
+  FROM buffspace_main.friend f, buffspace_main.profile pr
+  WHERE f.user_id_1 = ${user.user_id} AND f.user_id_2 = pr.user_id
+  `
+
+  const selectPosts = `
+    SELECT po.user_id, content, image_url, created_at, first_name, last_name, 
+           profile_picture_url
+    FROM buffspace_main.post po, buffspace_main.profile pr
+    WHERE po.user_id = pr.user_id;
+    `
 
   res.render('pages/homepage', { user, posts, topFriends, recentMessages });
 });

@@ -9,9 +9,10 @@ create table buffspace_main.user
             primary key,
     username   varchar(50)                         not null,
     password   varchar(255)                        not null,
-    confirm_password varchar(255) not null,
     created_at timestamp default current_timestamp not null,
-    last_login timestamp default current_timestamp not null
+    last_login timestamp default current_timestamp not null,
+    constraint username_ak
+        unique (username)
 );
 
 create table buffspace_main.profile_song
@@ -95,4 +96,22 @@ create table buffspace_main.friend
     user_1_ranking smallint,
     user_2_ranking smallint,
     created_at     timestamp default current_timestamp not null
+);
+
+create table buffspace_main.message
+(
+    message_id   integer                                not null
+        constraint message_pk
+            primary key,
+    from_user_id integer
+        constraint message_user_user_id_fk_2
+            references buffspace_main."user"
+            on update cascade on delete set null,
+    to_user_id   integer
+        constraint message_user_user_id_fk
+            references buffspace_main."user"
+            on update set null on delete set null,
+    content      varchar(500) default ''                not null,
+    image_url    integer,
+    created_at   timestamp    default current_timestamp not null
 );
