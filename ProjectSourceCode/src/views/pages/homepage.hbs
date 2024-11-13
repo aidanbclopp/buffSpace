@@ -2,12 +2,21 @@
     <h1>Welcome, {{user.name}}!</h1>
 
     <div class="post-widget">
-        <h2>Add a Post</h2>
         <form action="/posts" method="POST" class="post-form">
             <div class="form-group">
                 <textarea name="content" class="form-control" placeholder="What's on your mind?" required></textarea>
             </div>
-            <button type="submit" class="btn-primary">Post</button>
+            <div class="form-actions">
+                <div class="icon-buttons">
+                    <button type="button" class="icon-btn">
+                        <i class="bi bi-camera-fill" style="font-size: 32px"></i>
+                    </button>
+                    <button type="button" class="icon-btn">
+                        <i class="bi bi-music-note-list" style="font-size: 32px"></i>
+                    </button>
+                </div>
+                <button type="submit" class="btn-primary">Share</button>
+            </div>
         </form>
     </div>
 
@@ -16,13 +25,17 @@
         <div class="posts-list">
             {{#each posts}}
                 <div class="post">
-                    <img src="{{this.user.avatar_url}}" alt="{{this.user.name}}'s avatar" class="avatar">
                     <div class="post-header">
-                        <h3>{{this.user.name}}</h3>
-                        <span class="post-date">{{this.created_at}}</span>
+                        <img src="{{this.user.avatar_url}}" alt="{{this.user.name}}'s avatar" class="avatar" onerror="this.onerror=null;this.src='https://e7.pngegg.com/pngimages/926/34/png-clipart-computer-icons-user-profile-avatar-avatar-face-heroes.png';">
+                        <div class="post-details">
+                            <h3>{{this.user.name}}</h3>
+                        </div>
                     </div>
                     <div class="post-content">
                         <p>{{this.content}}</p>
+                    </div>
+                    <div class="post-meta">
+                        <span>Posted at {{this.created_at}}</span>
                     </div>
                 </div>
             {{/each}}
@@ -85,6 +98,25 @@
         font-size: 1rem;
     }
 
+    .form-actions {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+    }
+
+    .icon-buttons {
+        display: flex;
+        gap: 10px;
+    }
+
+    .icon-btn {
+        background-color: #f0f0f0;
+        border: none;
+        border-radius: 5px;
+        padding: 5px 10px;
+        cursor: pointer;
+    }
+
     .btn-primary {
         background-color: #007bff;
         color: white;
@@ -110,6 +142,21 @@
         margin-bottom: 20px;
         border-radius: 10px;
         box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+    }
+
+    .post-header {
+        display: flex;
+        align-items: center;
+    }
+
+    .post-details {
+        display: flex;
+        flex-direction: column;
+    }
+
+    .post-meta {
+        margin-top: 10px;
+        color: #666;
     }
 
     .avatar {

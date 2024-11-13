@@ -382,13 +382,19 @@ app.get('/homepage', (req, res) => {
 
   const posts = [
     {
-      user: { name: 'Alice' },
-      created_at: '2024-11-08 00:28:31',
+      user: {
+        name: 'Alice',
+        avatar_url: 'https://img.freepik.com/premium-vector/avatar-minimalist-line-art-icon-logo-symbol-black-color-only_925376-257641.jpg'
+      },
+      created_at: '12:28 AM Nov 8',
       content: 'This is a post by Alice.'
     },
     {
-      user: { name: 'Bob' },
-      created_at: '2024-11-07 12:15:45',
+      user: {
+        name: 'Bob',
+        avatar_url: 'https://img.freepik.com/premium-vector/boy-minimalist-line-art-icon-logo-symbol-black-color-only_925376-259120.jpg'
+      },
+      created_at: '12:15 PM Nov 7',
       content: 'This is a post by Bob.'
     }
   ];
