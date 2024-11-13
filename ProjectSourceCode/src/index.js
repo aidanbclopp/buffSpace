@@ -383,7 +383,7 @@ app.get('/homepage', (req, res) => {
   const posts = [
     {
       user: {
-        name: 'Alice',
+        name: 'Alice Smith',
         avatar_url: 'https://img.freepik.com/premium-vector/avatar-minimalist-line-art-icon-logo-symbol-black-color-only_925376-257641.jpg'
       },
       created_at: '12:28 AM Nov 8',
@@ -391,7 +391,7 @@ app.get('/homepage', (req, res) => {
     },
     {
       user: {
-        name: 'Bob',
+        name: 'Bob Johnson',
         avatar_url: 'https://img.freepik.com/premium-vector/boy-minimalist-line-art-icon-logo-symbol-black-color-only_925376-259120.jpg'
       },
       created_at: '12:15 PM Nov 7',
@@ -409,7 +409,35 @@ app.get('/homepage', (req, res) => {
     { name: 'George', avatar_url: 'https://content.wepik.com/statics/21209543/preview-page6.jpg' },
     { name: 'Hannah', avatar_url: 'https://content.wepik.com/statics/21209540/preview-page3.jpg' }
   ];
-  res.render('pages/homepage', { user, posts, topFriends });
+
+  const recentMessages = [
+    {
+      user: {
+        avatar_url: 'https://content.wepik.com/statics/20269019/preview-page3.jpg',
+        name: 'Charlie Dylanson'
+      },
+      timestamp: '10:30 AM',
+      content: 'Sleep? BuffSpace never sleeps!'
+    },
+    {
+      user: {
+        avatar_url: 'https://content.wepik.com/statics/21209543/preview-page6.jpg',
+        name: 'George Georgish'
+      },
+      timestamp: '10:32 AM',
+      content: 'I need more caffeine.'
+    },
+    {
+      user: {
+        avatar_url: 'https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcRmIo42UGDaWsRLggK0jDKeUhcwRe39QyC8hg&s',
+        name: 'Chip'
+      },
+      timestamp: '10:35 AM',
+      content: 'Hey, what have you been up to?'
+    }
+  ];
+
+  res.render('pages/homepage', { user, posts, topFriends, recentMessages });
 });
 
 module.exports = app.listen(3000);
