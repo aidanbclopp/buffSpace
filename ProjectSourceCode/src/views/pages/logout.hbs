@@ -4,8 +4,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Welcome to BuffSpace</title>
-
+    <title>Logout</title>
     <style>
         /* General Body Styling */
         body {
@@ -19,7 +18,7 @@
             margin: 0;
             padding: 0;
             background-image: url('https://aboutboulder.com/wp-content/uploads/2023/08/The-Vibrant-Campus-Life-at-CU-Boulder-scaled.jpeg');
-            /* Background image */
+            /* Subtle gradient background */
             background-size: cover;
             background-position: center;
         }
@@ -32,26 +31,12 @@
             text-align: center;
             margin-bottom: 30px;
             text-shadow: 2px 2px 8px rgba(0, 0, 0, 0.3);
-            /* Shadow effect */
+            /* Slight shadow effect */
         }
 
-        /* Signup Form Container */
-        .signup-form {
-            background-color: rgba(255, 255, 255, 0.8);
-            /* Semi-transparent white */
-            border-radius: 15px;
-            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
-            padding: 30px;
-            width: 100%;
-            max-width: 400px;
-            box-sizing: border-box;
-            margin: auto;
-            transition: transform 0.3s ease-in-out;
-        }
-
-        .signup-form:hover {
+        .login-form:hover {
             transform: scale(1.05);
-            /* Enlarge form on hover */
+            /* Slightly enlarge form on hover */
         }
 
         /* Form Group Styling */
@@ -83,7 +68,7 @@
 
         /* Button Styling */
         .btn-primary {
-            width: 100%;
+            width: 20%;
             background-color: #007bff;
             border: none;
             padding: 14px;
@@ -93,23 +78,21 @@
             cursor: pointer;
             transition: background-color 0.3s ease-in-out;
             font-weight: bold;
+
+            display: block;
+            /* Make the button block-level */
+            margin: 0 auto;
+            /* Center it horizontally */
         }
+
 
         .btn-primary:hover {
             background-color: #0056b3;
         }
 
-        /* Error Message Styling */
-        .error-message {
-            color: red;
-            font-size: 0.875rem;
-            margin-top: 10px;
-            text-align: center;
-        }
-
         /* Responsive Design */
         @media (max-width: 600px) {
-            .signup-form {
+            .login-form {
                 padding: 20px;
                 max-width: 80%;
             }
@@ -122,63 +105,18 @@
                 font-size: 1rem;
             }
         }
-
-        /* Main Description Section */
-        #description {
-            color: #fff;
-            text-align: center;
-            font-size: 1.2rem;
-            margin: 20px 0;
-            background-color: rgba(0, 0, 0, 0.5);
-            padding: 10px;
-            border-radius: 10px;
-            max-width: 600px;
-            box-sizing: border-box;
-        }
-
-        /* Auth Links Styling */
-        #auth-links {
-            text-align: center;
-            margin-top: 20px;
-        }
-
-        #auth-links a {
-            color: #007bff;
-            font-weight: bold;
-            text-decoration: none;
-            margin: 0 10px;
-            transition: color 0.3s ease-in-out;
-        }
-
-        #auth-links a:hover {
-            color: #0056b3;
-        }
     </style>
 </head>
 
 <body>
-    <header>
-        <h1>Welcome to BuffSpace!</h1>
-    </header>
 
-    <main>
-        <section id="description">
-            <p>
-                BuffSpace is your go-to platform for connecting with fellow students, staying up-to-date with events,
-                and sharing your college experience. Whether you're looking to join a study group or discover campus
-                happenings, BuffSpace has it all!
-            </p>
-        </section>
-
-        <section id="auth-links">
-            <p>
-                <a href="/login">Login</a>
-                <span style="color: white;">or</span>
-                <a href="/register">Register</a>
-                <span style="color: white;">to start your journey!</span>
-            </p>
-        </section>
-    </main>
+    <div class="container">
+        <section id="auth-links" style="margin-top: 20px;">
+            <h1>Goodbye!</h1>
+            <form action="/logout" method="POST">
+                <button type="submit" class="btn-primary">Log back in?</button>
+            </form>
+    </div>
 </body>
 
 </html>

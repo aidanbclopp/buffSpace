@@ -22,13 +22,13 @@ const axios = require('axios'); // To make HTTP requests from our server. We'll 
 
 // create `ExpressHandlebars` instance and configure the layouts and partials dir.
 const hbs = handlebars.create({
-    extname: 'hbs',
-    layoutsDir: __dirname + '/views/layouts',
-    partialsDir: __dirname + '/views/partials',
-    helpers: {
-      eq: function (a, b) {
-          return a === b;
-      }
+  extname: 'hbs',
+  layoutsDir: __dirname + '/views/layouts',
+  partialsDir: __dirname + '/views/partials',
+  helpers: {
+    eq: function (a, b) {
+      return a === b;
+    }
   }
 });
 
@@ -69,12 +69,12 @@ app.use(bodyParser.json()); // specify the usage of JSON for parsing request bod
 
 // initialize session variables
 app.use(
-    session({
-        secret: process.env.SESSION_SECRET,
-        saveUninitialized: true,
-        resave: true,
-        cookie: { secure: false }
-    })
+  session({
+    secret: process.env.SESSION_SECRET,
+    saveUninitialized: true,
+    resave: true,
+    cookie: { secure: false }
+  })
 );
 
 app.use(
@@ -92,6 +92,10 @@ app.get('/register', (req, res) => {
   res.render('pages/signup');
 });
 
+app.get('/welcome', (req, res) => {
+  res.json({status: 'success', message: 'Welcome!'});
+});
+
 const register = {
   username: undefined,
   password: undefined,
@@ -99,51 +103,10 @@ const register = {
 };
 
 app.get('/signup', (req, res) => {
-    res.render('pages/signup');
+  res.render('pages/signup');
 });
 
-/*
-app.post('/signup', (req, res) => {
-  const username = req.body.username;
-  const password = req.body.password;
-  const confirmPassword = req.body.confirmPassword;
 
-  console.log(req.body);
-
-  db.tx(async t => {
-    // const hash = await bcrypt.hash(req.body.password, 10);
-
-    const [row] = await t.any(
-      `SELECT * FROM buffspace_main.user WHERE username = $1`, [username]
-      );
-
-    if (row || (password !== confirmPassword)) {
-      throw new Error(`choose another username or password does not match`);
-    }
-
-    // There are either no prerequisites, or all have been taken.
-    await t.none(
-        'INSERT INTO buffspace_main.user(username, password, confirm_password) VALUES ($1, $2, $3);',
-          [username, password, confirmPassword]
-        );
-      })
-        .then(signup => {
-          //console.info(courses);
-          res.render('pages/login', {
-            username: register.username,
-            password: register.password,
-            confirmPassword: register.confirmPassword,
-            message: 'Success',
-          });
-        })
-        .catch(err => {
-          res.render('pages/signup', {
-            error: true,
-            message: err.message,
-          });
-        });
-});
-*/
 
 //for testing
 app.post('/signup', (req, res) => {
@@ -190,6 +153,16 @@ app.post('/signup', (req, res) => {
         });
 });
 
+app.get('/logout', (req, res) => {
+  req.session.destroy(err => {
+    if (err) {
+      return res.redirect('/');
+    }
+    res.render('pages/logout', { message: "Logged Out Successfully" });
+  });
+});
+
+
 // -------------------------------------  ROUTES for login.hbs   ----------------------------------------------
 const user = {
   user_id: undefined,
@@ -206,31 +179,45 @@ app.get('/login', (req, res) => {
 app.post('/login', (req, res) => {
   const username = req.body.username;
   const password = req.body.password;
-  const query = 'select * from buffspace_main.user where password = $1 LIMIT 1';
-  const values = [password];
+  const query = 'SELECT * FROM buffspace_main.user WHERE username = $1 LIMIT 1';
+  const values = [username];
 
-  // get the user_id based on the password
+  // Get the user based on the username
   db.one(query, values)
     .then(data => {
-      user.user_id = data.user_id;
-      user.username = username;
-      user.password = data.password;
-      user.created_at = data.created_at;
-      user.last_login = data.last_login;
-
-      req.session.user = user;
-      req.session.save();
-
-      res.redirect('/profile');
+      if (data.password === password) {  // Compare plaintext passwords
+        req.session.user = {
+          user_id: data.user_id,
+          username: data.username,
+          created_at: data.created_at,
+          last_login: data.last_login,
+        };
+        req.session.save();
+        return res.status(200).json({
+          status: 'success',
+          message: 'Login successful.',
+          session: req.session.user
+        });
+      } else {
+        return res.status(401).json({
+          status: 'failure',
+          message: 'Invalid username or password.'
+        });
+      }
     })
     .catch(err => {
       console.log(err);
       res.redirect('/login');
+      return res.status(401).json({
+        status: 'failure',
+        message: 'Invalid username or password.'
+      });
     });
 });
 
+
 app.get('/welcome', (req, res) => {
-  res.json({status: 'success', message: 'Welcome!'});
+  res.json({ status: 'success', message: 'Welcome!' });
 });
 
 // Authentication middleware.
