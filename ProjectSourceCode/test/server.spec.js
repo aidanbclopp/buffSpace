@@ -57,4 +57,32 @@ it('negative : /login with invalid credentials', done => {
       done();
     });
 });
+//register testing 
+describe('Testing Add User API', () => {
+  it('positive : /signup', done => {
+    chai
+      .request(server)
+      .post('/signup')
+      .send({username: 'pineapple', password: 'abcdefg', confirmPassword: 'abcdefg'})
+      .end((err, res) => {
+        expect(res).to.have.status(200);
+        expect(res.body.message).to.equals('Registration successful.');
+        done();
+      });
+  });
+});
+
+describe('Testing Add User API', () => {
+  it('Negative : /signup. Checking invalid name', done => {
+    chai
+      .request(server)
+      .post('/signup')
+      .send({username: 'apple', password: '12345', confirmPassword: '12333'})
+      .end((err, res) => {
+        expect(res).to.have.status(400);
+        expect(res.body.message).to.equals('Passwords do not match.');
+        done();
+      });
+  });
+});
 // ********************************************************************************
