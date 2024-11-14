@@ -83,6 +83,9 @@ app.use(
   })
 );
 
+// *****************************************************
+// <!-- Section 4 : App Settings -->
+// *****************************************************
 app.get('/', (req, res) => {
   res.render('pages/welcome');
 });
@@ -156,53 +159,6 @@ app.get('/logout', (req, res) => {
   });
 });
 
-
-/*
-//for testing
-app.post('/signup', (req, res) => {
-  const username = req.body.username;
-  const password = req.body.password;
-  const confirmPassword = req.body.confirmPassword;
-
-  console.log(req.body);
-
-  db.tx(async t => {
-    // const hash = await bcrypt.hash(req.body.password, 10);
-
-    const [row] = await t.any(
-      `SELECT * FROM buffspace_main.user WHERE username = $1`, [username]
-      );
-
-    if (row || (password !== confirmPassword)) {
-      throw new Error(`choose another username or password does not match`);
-    }
-
-    // There are either no prerequisites, or all have been taken.
-    await t.none(
-        'INSERT INTO buffspace_main.user(username, password, confirm_password) VALUES ($1, $2, $3);',
-          [username, password, confirmPassword]
-        );
-      })
-        .then(signup => {
-          //console.info(courses);
-          res.status(200).json({
-            username: register.username,
-            password: register.password,
-            confirmPassword: register.confirmPassword,
-            message: 'Registration successful.',
-          });
-        })
-        .catch(err => {
-          console.log(err);
-          return res.status(400).json({
-            username: register.username,
-            password: register.password,
-            confirmPassword: register.confirmPassword,
-            message: 'Passwords do not match.',
-          });
-        });
-});
-*/
 
 // -------------------------------------  ROUTES for login.hbs   ----------------------------------------------
 app.get('/login', (req, res) => {
@@ -500,6 +456,57 @@ app.post('/posts', auth, (req, res) => {
         console.log(err);
         res.redirect('/homepage');
       });
+});
+
+app.get('/buffcircle', auth, async (req, res) => {
+  const userId = req.session.user.user_id;
+
+  try {
+    // Fetch the user's profile
+    const profileQuery = `
+      SELECT * FROM buffspace_main.profile WHERE user_id = $1;
+    `;
+    const profile = await db.oneOrNone(profileQuery, [userId]);
+
+    // Fetch majors, classes, and interests (assuming you have these tables)
+    const majorsQuery = `SELECT * FROM buffspace_main.majors;`;
+    const classesQuery = `SELECT * FROM buffspace_main.classes;`;
+    const interestsQuery = `SELECT * FROM buffspace_main.interests;`;
+    const suggestedFriendsQuery = `
+      SELECT u.user_id, u.username, p.profile_picture_url
+      FROM buffspace_main.user u
+      JOIN buffspace_main.profile p ON u.user_id = p.user_id
+      WHERE u.user_id != $1
+      LIMIT 8;  // Adjust the limit as needed
+    `;
+
+    const [majors, classes, interests, suggestedFriends] = await Promise.all([
+      db.any(majorsQuery),
+      db.any(classesQuery),
+      db.any(interestsQuery),
+      db.any(suggestedFriendsQuery, [userId])
+    ]);
+
+    // Define sort options
+    const sortOptions = [
+      { value: "compatibility", label: "Compatibility" },
+      { value: "recent", label: "Recent Activity" },
+      { value: "classes", label: "Common Classes" }
+    ];
+
+    // Render the buffcircle.hbs template with the fetched data
+    res.render('pages/buffcircle', {
+      profile,
+      majors,
+      classes,
+      interests,
+      sortOptions,
+      suggestedFriends
+    });
+  } catch (error) {
+    console.error(error);
+    res.redirect('/'); // Redirect to home or handle error appropriately
+  }
 });
 
 module.exports = app.listen(3000);

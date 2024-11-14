@@ -1,0 +1,283 @@
+  {{!-- BuffCircle Main Template --}}
+<div class="homepage-container">
+    <div class="main-content">
+        <div class="content-left">
+            {{!-- Include existing profile widget --}}
+            <div class="sidebar-element">{{> profile-widget profile=profile}}</div>
+            
+            <div class="sidebar-element">
+                <div class="filter-widget">
+                    <h3>Filter By</h3>
+                    <div class="filter-section">
+                        <h4>Major</h4>
+                        <select class="form-control" id="major-filter">
+                            <option value="">All Majors</option>
+                            {{#each majors}}
+                                <option value="{{this.id}}">{{this.name}}</option>
+                            {{/each}}
+                        </select>
+                    </div>
+                    <div class="filter-section">
+                        <h4>Classes</h4>
+                        <select class="form-control" id="class-filter">
+                            <option value="">All Classes</option>
+                            {{#each classes}}
+                                <option value="{{this.id}}">{{this.code}} - {{this.name}}</option>
+                            {{/each}}
+                        </select>
+                    </div>
+                    <div class="filter-section">
+                        <h4>Interests</h4>
+                        <div class="interests-tags" id="interest-filter">
+                            {{#each interests}}
+                                <span class="interest-tag" data-interest-id="{{this.id}}">{{this.name}}</span>
+                            {{/each}}
+                        </div>
+                    </div>
+                    <button class="btn-primary" id="apply-filters">Apply Filters</button>
+                </div>
+            </div>
+        </div>
+        
+        <div class="content-right">
+            <div class="search-widget">
+                <input type="text" class="form-control" id="friend-search" placeholder="Search for friends by name, major, or interests...">
+            </div>
+
+            <div class="matches-header">
+                <h2>Suggested Friends</h2>
+                <div class="sort-options">
+                    <span>Sort by:</span>
+                    {{#each sortOptions}}
+                        <a href="#" class="sort-link" data-sort="{{this.value}}">{{this.label}}</a>
+                        {{#unless @last}} | {{/unless}}
+                    {{/each}}
+                </div>
+            </div>
+
+            <div class="friends-grid">
+                {{#each suggestedFriends}}
+                    <div class="friend-card">
+                        <img src="{{this.profilePicture}}" alt="Profile picture of {{this.name}}" 
+                             class="friend-avatar" onerror="this.src='/api/placeholder/100/100'">
+                        <div class="friend-info">
+                            <h3>{{this.name}}</h3>
+                            <p class="major">{{this.major}}</p>
+                            <div class="common-traits">
+                                {{#each this.commonClasses}}
+                                    <span class="trait">{{this}}</span>
+                                {{/each}}
+                                {{#each this.commonInterests}}
+                                    <span class="trait">{{this}}</span>
+                                {{/each}}
+                            </div>
+                            {{#if this.isConnected}}
+                                <button class="btn-secondary" disabled>Connected</button>
+                            {{else}}
+                                <button class="btn-primary" data-user-id="{{this.id}}">Connect</button>
+                            {{/if}}
+                        </div>
+                    </div>
+                {{else}}
+                    <div class="no-results">
+                        <p>No matching friends found. Try adjusting your filters!</p>
+                    </div>
+                {{/each}}
+            </div>
+        </div>
+    </div>
+</div>
+
+<style>
+    /* Inherit base styles from existing page */
+    body {
+        font-family: 'Arial', sans-serif;
+        background-color: #D9E3F0;
+        color: #333;
+        margin: 0;
+        padding: 0;
+        background-image: url('https://aboutboulder.com/wp-content/uploads/2023/08/The-Vibrant-Campus-Life-at-CU-Boulder-scaled.jpeg');
+        background-size: cover;
+        background-position: center;
+        background-attachment: fixed;
+        min-height: 100vh;
+    }
+
+    .homepage-container {
+        background-color: rgba(255, 255, 255, 0.9);
+        border-radius: 15px;
+        box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
+        padding: 30px;
+        width: 65%;
+        max-height: 85vh;
+        box-sizing: border-box;
+        margin: auto;
+        overflow-y: auto;
+        -ms-overflow-style: none;
+        scrollbar-width: none;
+    }
+
+    .main-content {
+        display: flex;
+        gap: 30px;
+    }
+
+    .content-left {
+        flex: 1;
+        max-width: 30%;
+    }
+
+    .content-right {
+        flex: 2;
+    }
+
+    /* New styles specific to BuffCircle */
+    .filter-widget {
+        background-color: #f9f9f9;
+        padding: 20px;
+        border-radius: 10px;
+        box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+    }
+
+    .filter-section {
+        margin-bottom: 20px;
+    }
+
+    .filter-section h4 {
+        margin-bottom: 10px;
+        color: #555;
+    }
+
+    .interests-tags {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 8px;
+    }
+
+    .interest-tag {
+        background-color: #eee;
+        padding: 5px 10px;
+        border-radius: 15px;
+        font-size: 0.9rem;
+        cursor: pointer;
+    }
+
+    .interest-tag.selected {
+        background-color: rgb(215, 183, 27);
+        color: white;
+    }
+
+    .search-widget {
+        margin-bottom: 20px;
+    }
+
+    .matches-header {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        margin-bottom: 20px;
+    }
+
+    .friends-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fill, minmax(250px, 1fr));
+        gap: 20px;
+    }
+
+    .friend-card {
+        background-color: white;
+        border-radius: 10px;
+        padding: 20px;
+        box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+        text-align: center;
+    }
+
+    .friend-avatar {
+        width: 100px;
+        height: 100px;
+        border-radius: 50%;
+        margin-bottom: 15px;
+    }
+
+    .friend-info h3 {
+        margin: 0 0 5px 0;
+        color: #333;
+    }
+
+    .major {
+        color: #666;
+        margin: 0 0 10px 0;
+    }
+
+    .common-traits {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 5px;
+        justify-content: center;
+        margin-bottom: 15px;
+    }
+
+    .trait {
+        background-color: #f0f0f0;
+        padding: 3px 8px;
+        border-radius: 12px;
+        font-size: 0.8rem;
+    }
+
+    .btn-primary {
+        background-color: rgb(215, 183, 27);
+        color: white;
+        padding: 8px 20px;
+        border: none;
+        border-radius: 5px;
+        cursor: pointer;
+        font-size: 1rem;
+    }
+
+    .btn-secondary {
+        background-color: #cccccc;
+        color: white;
+        padding: 8px 20px;
+        border: none;
+        border-radius: 5px;
+        font-size: 1rem;
+    }
+
+    .btn-primary:hover {
+        background-color: rgb(195, 163, 7);
+    }
+
+    .form-control {
+        width: 100%;
+        padding: 10px;
+        border: 1px solid #ccc;
+        border-radius: 5px;
+        font-size: 1rem;
+    }
+
+    select.form-control {
+        background-color: white;
+    }
+
+    .sort-options {
+        font-size: 0.9rem;
+    }
+
+    .sort-link {
+        color: rgb(215, 183, 27);
+        text-decoration: none;
+    }
+
+    .sort-link:hover {
+        text-decoration: underline;
+    }
+
+    .no-results {
+        grid-column: 1 / -1;
+        text-align: center;
+        padding: 40px;
+        background-color: white;
+        border-radius: 10px;
+    }
+</style>
+
