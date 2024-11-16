@@ -100,6 +100,22 @@ const user = {
     last_login: undefined,
 };
 
+
+app.get('/friends', async (req, res) => {
+  try {
+    // Fetch friends data from the database
+    const friends = await db.any('SELECT * FROM buffspace_main.profile');
+    
+    // Render the page and pass the friends data to the Handlebars template
+    res.render('pages/friends', { friends: friends });
+  } catch (error) {
+    console.error('Error fetching friends:', error);
+    res.status(500).send('Internal Server Error');
+  }
+});
+
+
+
 app.get('/signup', (req, res) => {
   res.render('pages/signup');
 });

@@ -1,0 +1,166 @@
+<div class="friends-container">
+  <div class="main-content">
+    <div class="content-left">
+      <div class="sidebar-element">{{> profile-widget profile=profile}}</div>
+      <div class="sidebar-element">{{> buffcircle-widget friends=topFriends}}</div>
+      <div class="sidebar-element">{{> chat-widget messages=recentMessages}}</div>
+    </div>
+    <div class="content-right">
+      <div class="friends-list-widget">
+        <h2>Friends</h2>
+        <div class="customize-links">
+          <div class="filter-links">
+            <span>Show me:</span>
+            <a href="#" class="filter-link">All Friends</a> |
+            <a href="#" class="filter-link">Just Me</a> |
+            <a href="#" class="filter-link">BuffSpace</a>
+          </div>
+          <div class="sort-links">
+            <span>Sort by:</span>
+            <a href="#" class="sort-link">Date</a> |
+            <a href="#" class="sort-link">Random</a>
+          </div>
+        </div>
+        <div class="friends-list">
+          {{#each friends}}
+            <div class="friend-card">
+              <div class="friend-header">
+                <img src="{{this.profile_picture_url}}" class="avatar" onerror="this.onerror=null;this.src='https://e7.pngegg.com/pngimages/926/34/png-clipart-computer-icons-user-profile-avatar-avatar-face-heroes.png';">
+                <div class="friend-details">
+                  <h3>{{this.first_name}} {{this.last_name}}</h3>
+                  <p>{{this.status}}</p>
+                </div>
+              </div>
+              <div class="friend-actions">
+                <button class="btn-primary">Message</button>
+                <button class="btn-primary">Unfriend</button>
+              </div>
+            </div>
+          {{/each}}
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+
+<style>
+    body {
+        font-family: 'Arial', sans-serif;
+        background-color: #D9E3F0;
+        color: #333;
+        margin: 0;
+        padding: 0;
+        background-image: url('https://aboutboulder.com/wp-content/uploads/2023/08/The-Vibrant-Campus-Life-at-CU-Boulder-scaled.jpeg');
+        background-size: cover;
+        background-position: center;
+        background-attachment: fixed;
+        min-height: 100vh;
+    }
+
+    .main-content {
+        display: flex;
+    }
+
+    .content-left {
+        flex: 1;
+        max-width: 30%;
+        margin-right: 30px;
+        position: sticky;
+        top: 0;
+        height: fit-content;
+    }
+
+    .content-right {
+        flex: 2;
+    }
+
+    .friends-container {
+        background-color: rgba(255, 255, 255, 0.9);
+        border-radius: 15px;
+        box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
+        padding: 30px;
+        width: 65%;
+        max-height: 85vh;
+        box-sizing: border-box;
+        margin: auto;
+        overflow-y: auto;
+        -ms-overflow-style: none;
+        scrollbar-width: none;
+    }
+
+    .friends-container::-webkit-scrollbar {
+        display: none;
+    }
+
+    .friends-list-widget h2 {
+        text-align: center;
+        margin-bottom: 20px;
+    }
+
+    .customize-links {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        text-align: start;
+        margin-bottom: 20px;
+    }
+
+    .filter-link, .sort-link {
+        color: rgb(215, 183, 27);
+        text-decoration: none;
+    }
+
+    .filter-link:hover, .sort-link:hover {
+        text-decoration: underline;
+    }
+
+    .friends-list {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 20px;
+    }
+
+    .friend-card {
+        background-color: #fff;
+        padding: 15px;
+        border-radius: 10px;
+        box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+        width: 250px;
+        text-align: center;
+    }
+
+    .friend-header {
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+    }
+
+    .friend-details {
+        margin-top: 10px;
+    }
+
+    .friend-actions {
+        margin-top: 20px;
+        display: flex;
+        justify-content: space-between;
+    }
+
+    .friend-actions button {
+        padding: 8px 15px;
+        font-size: 0.9rem;
+        background-color: rgb(215, 183, 27);
+        color: white;
+        border: none;
+        border-radius: 5px;
+        cursor: pointer;
+    }
+
+    .avatar {
+        width: 70px;
+        height: 70px;
+        border-radius: 50%;
+        margin-bottom: 10px;
+    }
+
+</style>
