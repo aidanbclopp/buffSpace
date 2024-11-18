@@ -14,6 +14,46 @@ create table buffspace_main.user
         unique (username)
 );
 
+CREATE TABLE buffspace_main.majors
+(
+    major_id    SERIAL
+        constraint majors_pk
+            primary key,
+    major_name  varchar(100) not null
+);
+
+CREATE TABLE buffspace_main.student_majors
+(
+    major_id integer
+        constraint student_majors_major_id_fk
+            references buffspace_main.majors
+            on delete cascade,
+    user_id integer
+        constraint student_majors_user_id_fk
+            references buffspace_main.user
+            on delete cascade
+);
+
+create table buffspace_main.courses
+(
+    course_id   numeric
+        constraint courses_pk
+            primary key,
+    course_name varchar(100) not null
+);
+
+create table buffspace_main.student_courses
+(
+    course_id  integer
+        constraint student_courses_courses_course_id_fk
+            references buffspace_main.courses
+            on delete cascade,
+    user_id integer
+        constraint student_courses_user_user_id_fk
+            references buffspace_main.user
+            on delete cascade
+);
+
 create table buffspace_main.profile_song
 (
     song_id           integer
@@ -33,7 +73,7 @@ create table buffspace_main.profile
     profile_id          SERIAL
         constraint profile_pk
             primary key,
-    user_id             integer not null                             not null
+    user_id             integer not null
         constraint profile_user_user_id_fk
             references buffspace_main.user
             on delete cascade,
@@ -42,7 +82,6 @@ create table buffspace_main.profile
     first_name          varchar(50),
     last_name           varchar(50),
     graduation_year     smallint,
-    major               varchar(255),
     song_id             integer
         constraint profile_song_song_id_fk
             references buffspace_main.profile_song
@@ -113,45 +152,4 @@ create table buffspace_main.message
     content      varchar(500) default ''                not null,
     image_url    integer,
     created_at   timestamp    default current_timestamp not null
-);
-
-
-CREATE TABLE buffspace_main.majors
-(
-    major_id    SERIAL
-        constraint majors_pk
-            primary key,
-    major_name  varchar(100) not null
-);
-
-CREATE TABLE buffspace_main.student_majors
-(
-    major_id integer
-        constraint student_majors_major_id_fk
-            references buffspace_main.majors
-            on delete cascade,
-    user_id integer
-        constraint student_majors_user_id_fk
-            references buffspace_main.user
-            on delete cascade
-);
-
-create table buffspace_main.courses
-(
-    course_id   numeric
-        constraint courses_pk
-            primary key,
-    course_name varchar(100) not null
-);
-
-create table buffspace_main.student_courses
-(
-    course_id  integer
-        constraint student_courses_courses_course_id_fk
-            references buffspace_main.courses
-            on delete cascade,
-    user_id integer
-        constraint student_courses_user_user_id_fk
-            references buffspace_main.user
-            on delete cascade
 );

@@ -212,30 +212,41 @@ app.use(auth);
 // *****************************************************
 // starting the server and keeping the connection open to listen for more request
 
-app.get('/profile/:username?', auth, (req, res) => {
+
+const fetchMajors = async () => {
+  const query = 'SELECT * FROM buffspace_main.majors;';
+  return await db.any(query);
+};
+
+app.get('/profile/:username?', auth, async (req, res) => {
   const requestedUsername = req.params.username || req.session.user.username;
   const query = `
-    SELECT p.*, u.username, u.user_id
+    SELECT 
+        p.*,
+        u.username,
+        m.major_name,
+        m.major_id
     FROM buffspace_main.profile p
     JOIN buffspace_main.user u ON p.user_id = u.user_id
+    LEFT JOIN buffspace_main.student_majors sm ON sm.user_id = u.user_id
+    LEFT JOIN buffspace_main.majors m ON sm.major_id = m.major_id
     WHERE u.username = $1
   `;
   const values = [requestedUsername];
 
-  db.one(query, values)
-    .then(profileData => {
-      res.render('pages/profile', {
-        profile: profileData,
-        isOwnProfile: profileData.user_id === req.session.user.user_id
-      });
-    })
-    .catch(err => {
-      console.log(err);
-      res.render('pages/create-profile');
+  try {
+    const profileData = await db.one(query, values);
+    res.render('pages/profile', {
+      profile: profileData,
+      isOwnProfile: profileData.user_id === req.session.user.user_id
     });
+  } catch (err) {
+    console.log(err);
+    res.redirect('/create-profile');
+  }
 });
 
-app.get('/edit-profile', auth, (req, res) => {
+app.get('/edit-profile', auth, async (req, res) => {
   const userId = req.session.user.user_id;
   const query = `
     SELECT p.*, u.username
@@ -245,63 +256,54 @@ app.get('/edit-profile', auth, (req, res) => {
   `;
   const values = [userId];
 
-  db.one(query, values)
-    .then(profileData => {
-      res.render('pages/edit-profile', { profile: profileData });
-    })
-    .catch(err => {
-      console.log(err);
-      res.redirect('/profile');
-    });
+  try {
+    const profileData = await db.one(query, values);
+    const majors = await fetchMajors(); // Fetch majors
+    res.render('pages/edit-profile', { profile: profileData, majors }); // Pass majors to the view
+  } catch (err) {
+    console.log(err);
+    res.redirect('/profile');
+  }
 });
 
 // POST route to handle profile updates
-app.post('/edit-profile', auth, (req, res) => {
+app.post('/edit-profile', auth, async (req, res) => {
   const userId = req.session.user.user_id;
-  const {
-    first_name,
-    last_name,
-    bio,
-    graduation_year,
-    major,
-    status,
-    profile_picture_url
-  } = req.body;
+  const { major_id, ...profileData } = req.body; // Destructure major_id from the form data
 
-  const query = `
-    UPDATE buffspace_main.profile
-    SET
-      first_name = $1,
-      last_name = $2,
-      bio = $3,
-      graduation_year = $4,
-      major = $5,
-      status = $6,
-      profile_picture_url = $7,
-      last_updated = CURRENT_TIMESTAMP
-    WHERE user_id = $8
-    RETURNING *
-  `;
+  try {
+    // Start a transaction
+    await db.tx(async t => {
+      // Update profile
+      await t.none(`
+        UPDATE buffspace_main.profile 
+        SET 
+          first_name = $1,
+          last_name = $2,
+          graduation_year = $3,
+          bio = $4,
+          status = $5
+        WHERE user_id = $6
+      `, [profileData.first_name, profileData.last_name, 
+          profileData.graduation_year, profileData.bio, 
+          profileData.status, userId]);
 
-  const values = [
-    first_name,
-    last_name,
-    bio,
-    graduation_year,
-    major,
-    status,
-    profile_picture_url,
-    userId
-  ];
-
-  db.one(query, values)
-    .then(() => {
-      res.redirect('/profile');
-    })
-    .catch(err => {
-      console.log(err);
-      res.redirect('/edit-profile');
+      // Update student_majors (first remove old major, then add new one)
+      await t.none('DELETE FROM buffspace_main.student_majors WHERE user_id = $1', [userId]);
+      if (major_id) {
+        await t.none('INSERT INTO buffspace_main.student_majors (user_id, major_id) VALUES ($1, $2)', 
+          [userId, major_id]);
+      }
     });
+
+    res.redirect('/profile');
+  } catch (error) {
+    console.error(error);
+    res.render('pages/edit-profile', {
+      error: true,
+      message: 'Error updating profile'
+    });
+  }
 });
 
 const profile = {
@@ -319,72 +321,64 @@ const profile = {
 };
 
 //SCAFFOLDING
-app.get('/create-profile', auth, (req, res) => {
-  // Check if user already has a profile
+app.get('/create-profile', auth, async (req, res) => {
   const userId = req.session.user.user_id;
   const query = `
     SELECT * FROM buffspace_main.profile
     WHERE user_id = $1
   `;
 
-  db.oneOrNone(query, [userId])
-    .then(profile => {
-      if (profile) {
-        // If profile exists, redirect to profile page
-        res.redirect('/profile');
-      } else {
-        // If no profile exists, render create profile page
-        res.render('pages/create-profile', {
-          user: req.session.user
-        });
-      }
-    })
-    .catch(err => {
-      console.log(err);
-      res.redirect('/');
-    });
+  try {
+    const profile = await db.oneOrNone(query, [userId]);
+    const majors = await fetchMajors(); // Fetch majors
+    if (profile) {
+      res.redirect('/profile');
+    } else {
+      res.render('pages/create-profile', {
+        user: req.session.user,
+        majors // Pass majors to the view
+      });
+    }
+  } catch (err) {
+    console.log(err);
+    res.redirect('/');
+  }
 });
 
 // Handle profile creation
-app.post('/create-profile', auth, (req, res) => {
-  const user_id = req.session.user.user_id;
-  const {
-    bio,
-    profile_picture_url,
-    first_name,
-    last_name,
-    graduation_year,
-    major,
-    status
-  } = req.body;
+app.post('/create-profile', auth, async (req, res) => {
+  const userId = req.session.user.user_id;
+  const { major_id, ...profileData } = req.body;
 
-  const query = `
-    INSERT INTO buffspace_main.profile
-    (user_id, bio, profile_picture_url, first_name, last_name, graduation_year, major, status)
-    VALUES ($1, $2, $3, $4, $5, $6, $7, $8)
-    RETURNING *;`;
+  try {
+    await db.tx(async t => {
+      // Insert profile
+      await t.none(`
+        INSERT INTO buffspace_main.profile
+        (user_id, first_name, last_name, graduation_year, bio, status)
+        VALUES ($1, $2, $3, $4, $5, $6)
+      `, [userId, profileData.first_name, profileData.last_name,
+          profileData.graduation_year, profileData.bio, 
+          profileData.status]);
 
-  const values = [
-    user_id,
-    bio,
-    profile_picture_url,
-    first_name,
-    last_name,
-    graduation_year,
-    major,
-    status
-  ];
-
-  db.one(query, values)
-    .then(profile => {
-      res.redirect('/profile');
-    })
-    .catch(err => {
-      res.render('pages/create-profile', {
-        error: true,
-        message: err.message,
+      // Insert student_majors
+      if (major_id) {
+        await t.none(`
+          INSERT INTO buffspace_main.student_majors
+          (user_id, major_id)
+          VALUES ($1, $2)
+        `, [userId, major_id]);
+      }
     });
-  });
+
+    res.redirect('/profile');
+  } catch (error) {
+    console.error(error);
+    res.render('pages/create-profile', {
+      error: true,
+      message: 'Error creating profile'
+    });
+  }
 });
 
 //SCAFFOLDING END
@@ -508,6 +502,5 @@ app.get('/buffcircle', auth, async (req, res) => {
     res.redirect('/'); // Redirect to home or handle error appropriately
   }
 });
-
 module.exports = app.listen(3000);
 console.log('Server is listening on port 3000');

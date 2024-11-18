@@ -35,9 +35,15 @@
             </div>
 
             <div class="form-group">
-                <label for="major">Major</label>
-                <input type="text" id="major" name="major" 
-                      class="form-control" value="{{profile.major}}" required>
+                <label for="major_id">Major*</label>
+                <select id="major_id" name="major_id" class="form-control" required>
+                    <option value="">Select your major</option>
+                    {{#each majors}}
+                        <option value="{{this.major_id}}" {{#if (eq this.major_id ../profile.major_id)}}selected{{/if}}>
+                            {{this.major_name}}
+                        </option>
+                    {{/each}}
+                </select>
             </div>
 
             <div class="form-group">

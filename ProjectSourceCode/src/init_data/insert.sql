@@ -11,8 +11,23 @@ VALUES
     (8,'george','cheez', DEFAULT),
     (9,'hannah','cheez', DEFAULT);
 
+INSERT INTO buffspace_main.majors
+  (major_id, major_name)
+VALUES
+  (1, 'Computer Science (BA)'),
+  (2, 'Computer Engineering (BS)'),
+  (3, 'Electrical Engineering (BS)'),
+  (4, 'Mechanical Engineering (BS)'),
+  (5, 'Civil Engineering (BS)'),
+  (6, 'Chemical Engineering (BS)'),
+  (7, 'Biomedical Engineering (BS)'),
+  (8, 'Aerospace Engineering (BS)'),
+  (9, 'Industrial Engineering (BS)'),
+  (10, 'Environmental Engineering (BS)');
+
+
 INSERT INTO buffspace_main.profile
-  (user_id, bio, profile_picture_url, first_name, last_name, graduation_year, major, status)
+  (user_id, bio, profile_picture_url, first_name, last_name, graduation_year, status)
 VALUES
   (
     1, -- profile_id
@@ -21,9 +36,16 @@ VALUES
     'CHIP', -- first_name
     'BUFFALO', -- last_name
     2024, -- graduation_year
-    'Mascot', -- major
     'Active' -- status
   );
+
+INSERT INTO buffspace_main.student_majors
+    (user_id, major_id)
+VALUES
+    (1, 1),  
+    (2, 2),  
+    (3, 1),  
+    (4, 3);  
 
 INSERT INTO buffspace_main.profile (user_id, first_name, last_name, profile_picture_url)
 VALUES
@@ -83,21 +105,6 @@ VALUES
   (4308, 'Software Engineering Project 1'),
   (4448, 'Object-Oriented Analysis and Design'),
   (4502, 'Data Mining');
-
-INSERT INTO buffspace_main.majors
-  (major_id, major_name)
-VALUES
-  (1, 'Computer Science (BA)'),
-  (2, 'Computer Engineering (BS)'),
-  (3, 'Electrical Engineering (BS)'),
-  (4, 'Mechanical Engineering (BS)'),
-  (5, 'Civil Engineering (BS)'),
-  (6, 'Chemical Engineering (BS)'),
-  (7, 'Biomedical Engineering (BS)'),
-  (8, 'Aerospace Engineering (BS)'),
-  (9, 'Industrial Engineering (BS)'),
-  (10, 'Environmental Engineering (BS)');
-
 
 /* This needs to be the last part of file */
 SELECT setval('buffspace_main.user_user_id_seq', (SELECT MAX(user_id) FROM buffspace_main.user) + 1);
