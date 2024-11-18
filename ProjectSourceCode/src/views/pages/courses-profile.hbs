@@ -1,0 +1,218 @@
+<div class="profile-container">
+    <div class="profile-content">
+        <h1>My Courses</h1>
+        
+        <!-- Display Current Courses -->
+        <div class="current-courses">
+            <h2>Current Courses</h2>
+            {{#if userCourses}}
+                <ul class="course-list">
+                    {{#each userCourses}}
+                        <li class="course-item">
+                            <span>{{this.course_id}} - {{this.course_name}}</span>
+                            <form action="/remove-course" method="POST" class="remove-course-form">
+                                <input type="hidden" name="course_id" value="{{this.course_id}}">
+                                <button type="submit" class="btn-remove">Remove</button>
+                            </form>
+                        </li>
+                    {{/each}}
+                </ul>
+            {{else}}
+                <p>No courses added yet.</p>
+            {{/if}}
+        </div>
+
+        <!-- Add New Courses -->
+        <div class="add-courses">
+            <h2>Add Courses</h2>
+            <form action="/add-course" method="POST" class="add-course-form">
+                <div class="form-group">
+                    <select name="course_id" class="form-control" required>
+                        <option value="">Select a course</option>
+                        {{#each availableCourses}}
+                            <option value="{{this.course_id}}">{{this.course_id}} - {{this.course_name}}</option>
+                        {{/each}}
+                    </select>
+                </div>
+                <button type="submit" class="btn-primary">Add Course</button>
+            </form>
+        </div>
+    </div>
+</div>
+
+<style>
+/* General Body Styling */
+body {
+    font-family: 'Arial', sans-serif;
+    background-color: #D9E3F0;
+    color: #333;
+    margin: 0;
+    padding: 0;
+    background-image: url('https://aboutboulder.com/wp-content/uploads/2023/08/The-Vibrant-Campus-Life-at-CU-Boulder-scaled.jpeg');
+    background-size: cover;
+    background-position: center;
+    background-attachment: fixed;
+    min-height: 100vh;
+}
+
+/* Profile Container */
+.profile-container {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    padding: 40px 20px;
+    min-height: calc(100vh - 80px);
+}
+
+/* Profile Content */
+.profile-content {
+    background-color: rgba(255, 255, 255, 0.9);
+    border-radius: 15px;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
+    padding: 30px;
+    width: 100%;
+    max-width: 600px;
+    box-sizing: border-box;
+    margin: auto;
+}
+
+/* Header Styling */
+h1 {
+    color: #CFB87C;
+    font-size: 2.5rem;
+    font-weight: bold;
+    text-align: center;
+    margin-bottom: 30px;
+    text-shadow: 1px 1px 4px rgba(0, 0, 0, 0.1);
+}
+
+h2 {
+    color: #565A5C;
+    font-size: 1.5rem;
+    margin-bottom: 20px;
+    font-weight: bold;
+}
+
+/* Form Styling */
+.form-group {
+    margin-bottom: 20px;
+}
+
+.form-control {
+    width: 100%;
+    padding: 10px;
+    border: 2px solid #B5D0E7;
+    border-radius: 5px;
+    font-size: 1rem;
+    transition: border-color 0.3s ease;
+}
+
+.form-control:focus {
+    outline: none;
+    border-color: #565A5C;
+    box-shadow: 0 0 5px rgba(86, 90, 92, 0.2);
+}
+
+/* Course List Styling */
+.course-list {
+    list-style: none;
+    padding: 0;
+    margin: 20px 0;
+}
+
+.course-item {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 15px;
+    margin-bottom: 10px;
+    background-color: #f8f9fa;
+    border: 2px solid #B5D0E7;
+    border-radius: 5px;
+    transition: all 0.3s ease;
+}
+
+.course-item:hover {
+    border-color: #565A5C;
+    box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+}
+
+/* Button Styling */
+.button-group {
+    display: flex;
+    gap: 15px;
+    margin-top: 30px;
+}
+
+.btn-primary, .btn-secondary {
+    flex: 1;
+    padding: 12px 20px;
+    border: none;
+    border-radius: 5px;
+    cursor: pointer;
+    font-size: 1rem;
+    font-weight: bold;
+    text-align: center;
+    text-decoration: none;
+    transition: background-color 0.3s ease;
+}
+
+.btn-primary {
+    background-color: #565A5C;
+    color: white;
+}
+
+.btn-secondary {
+    background-color: #CFB87C;
+    color: white;
+}
+
+.btn-remove {
+    background-color: #dc3545;
+    color: white;
+    border: none;
+    padding: 8px 15px;
+    border-radius: 5px;
+    cursor: pointer;
+    font-weight: bold;
+    transition: background-color 0.3s ease;
+}
+
+.btn-primary:hover {
+    background-color: #A2A4A3;
+}
+
+.btn-secondary:hover {
+    background-color: #E8D4A9;
+}
+
+.btn-remove:hover {
+    background-color: #c82333;
+}
+
+.add-courses {
+    margin-top: 30px;
+    padding-top: 20px;
+    border-top: 2px solid #B5D0E7;
+}
+
+/* Responsive Design */
+@media (max-width: 768px) {
+    .profile-content {
+        padding: 20px;
+        margin: 20px;
+    }
+
+    h1 {
+        font-size: 2rem;
+    }
+
+    .button-group {
+        flex-direction: column;
+    }
+
+    .btn-primary, .btn-secondary {
+        width: 100%;
+    }
+}
+</style>

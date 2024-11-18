@@ -502,5 +502,81 @@ app.get('/buffcircle', auth, async (req, res) => {
     res.redirect('/'); // Redirect to home or handle error appropriately
   }
 });
+
+app.get('/courses-profile', auth, async (req, res) => {
+  const userId = req.session.user.user_id;
+
+  try {
+    // Get user's current courses
+    const userCoursesQuery = `
+      SELECT c.* 
+      FROM buffspace_main.courses c
+      JOIN buffspace_main.student_courses sc ON c.course_id = sc.course_id
+      WHERE sc.user_id = $1
+      ORDER BY c.course_id;
+    `;
+
+    // Get available courses (not yet added by user)
+    const availableCoursesQuery = `
+      SELECT c.*
+      FROM buffspace_main.courses c
+      WHERE c.course_id NOT IN (
+        SELECT course_id 
+        FROM buffspace_main.student_courses 
+        WHERE user_id = $1
+      )
+      ORDER BY c.course_id;
+    `;
+
+    const [userCourses, availableCourses] = await Promise.all([
+      db.any(userCoursesQuery, [userId]),
+      db.any(availableCoursesQuery, [userId])
+    ]);
+
+    res.render('pages/courses-profile', {
+      userCourses,
+      availableCourses
+    });
+  } catch (error) {
+    console.error(error);
+    res.redirect('/profile');
+  }
+});
+
+// Add a course
+app.post('/add-course', auth, async (req, res) => {
+  const userId = req.session.user.user_id;
+  const courseId = req.body.course_id;
+
+  try {
+    await db.none(
+      'INSERT INTO buffspace_main.student_courses (user_id, course_id) VALUES ($1, $2)',
+      [userId, courseId]
+    );
+    res.redirect('/courses-profile');
+  } catch (error) {
+    console.error(error);
+    res.redirect('/courses-profile');
+  }
+});
+
+// Remove a course
+app.post('/remove-course', auth, async (req, res) => {
+  const userId = req.session.user.user_id;
+  const courseId = req.body.course_id;
+
+  try {
+    await db.none(
+      'DELETE FROM buffspace_main.student_courses WHERE user_id = $1 AND course_id = $2',
+      [userId, courseId]
+    );
+    res.redirect('/courses-profile');
+  } catch (error) {
+    console.error(error);
+    res.redirect('/courses-profile');
+  }
+});
+
+
 module.exports = app.listen(3000);
 console.log('Server is listening on port 3000');

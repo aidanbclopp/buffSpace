@@ -25,6 +25,31 @@ VALUES
   (9, 'Industrial Engineering (BS)'),
   (10, 'Environmental Engineering (BS)');
 
+INSERT INTO buffspace_main.courses
+  (course_id, course_name)
+VALUES
+  (1000, 'Computer Science as a Field of Work and Study'),
+  (1300, 'Introduction to Programming'),
+  (1200, 'Introduction to computational thinking'),
+  (2270, 'Data Structures'),
+  (2400, 'Computer Systems'),
+  (3308, 'Software Development Methods and Tools'),
+  (2824, 'Discrete Structures'),
+  (3104, 'Algorithms'),
+  (3155, 'Principles of Programming Languages'),
+  (3287, 'Design and Analysis of Database systems'),
+  (3753, 'Design and Analysis of Operating systems'),
+  (2820, 'Linear Algebra with Computer Science Applications'),
+  (3202, 'Introduction to Artificial Intelligence'),
+  (3022, 'Introduction to Data Science'),
+  (3002, 'Fundamentals of Human Computer Interaction'),
+  (3010, 'Intensive Programming Workshop'),
+  (4253, 'Data Center Scale Computing'),
+  (4273, 'Network Systems'),
+  (4308, 'Software Engineering Project 1'),
+  (4448, 'Object-Oriented Analysis and Design'),
+  (4502, 'Data Mining');
+
 
 INSERT INTO buffspace_main.profile
   (user_id, bio, profile_picture_url, first_name, last_name, graduation_year, status)
@@ -46,6 +71,13 @@ VALUES
     (2, 2),  
     (3, 1),  
     (4, 3);  
+
+INSERT INTO buffspace_main.student_courses
+    (user_id, course_id)
+VALUES
+    (1, 3308),
+    (1, 2824),
+    (1, 3002);
 
 INSERT INTO buffspace_main.profile (user_id, first_name, last_name, profile_picture_url)
 VALUES
@@ -79,32 +111,6 @@ VALUES
     (4, 1, 'Two Bangs, three adderalls, one brain cell', '2024-11-02 3:33:33'),
     (8, 1, 'Monster? More like NyQuil', '2024-11-07 12:34:56'),
     (3, 1, 'My hummer''s in the shop', '2024-11-05 08:22:56');
-
-
-INSERT INTO buffspace_main.courses
-  (course_id, course_name)
-VALUES
-  (1000, 'Computer Science as a Field of Work and Study'),
-  (1300, 'Introduction to Programming'),
-  (1200, 'Introduction to computational thinking'),
-  (2270, 'Data Structures'),
-  (2400, 'Computer Systems'),
-  (3308, 'Software Development Methods and Tools'),
-  (2824, 'Discrete Structures'),
-  (3104, 'Algorithms'),
-  (3155, 'Principles of Programming Languages'),
-  (3287, 'Design and Analysis of Database systems'),
-  (3753, 'Design and Analysis of Operating systems'),
-  (2820, 'Linear Algebra with Computer Science Applications'),
-  (3202, 'Introduction to Artificial Intelligence'),
-  (3022, 'Introduction to Data Science'),
-  (3002, 'Fundamentals of Human Computer Interaction'),
-  (3010, 'Intensive Programming Workshop'),
-  (4253, 'Data Center Scale Computing'),
-  (4273, 'Network Systems'),
-  (4308, 'Software Engineering Project 1'),
-  (4448, 'Object-Oriented Analysis and Design'),
-  (4502, 'Data Mining');
 
 /* This needs to be the last part of file */
 SELECT setval('buffspace_main.user_user_id_seq', (SELECT MAX(user_id) FROM buffspace_main.user) + 1);
