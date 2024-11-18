@@ -103,8 +103,25 @@ const user = {
     last_login: undefined,
 };
 
+
+app.get('/friends', async (req, res) => {
+  try {
+    // Fetch friends data from the database
+    const friends = await db.any('SELECT * FROM buffspace_main.profile');
+    
+    // Render the page and pass the friends data to the Handlebars template
+    res.render('pages/friends', { friends: friends });
+  } catch (error) {
+    console.error('Error fetching friends:', error);
+    res.status(500).send('Internal Server Error');
+  }
+});
+
+
+
 app.get('/signup', (req, res) => {
-  res.render('pages/signup');
+  const signupSuccess = req.query.signupSuccess === 'true'; // Check if the signup was successful
+  res.render('pages/signup', { signupSuccess });
 });
 
 app.post('/signup', (req, res) => {
@@ -115,40 +132,36 @@ app.post('/signup', (req, res) => {
   console.log(req.body);
 
   db.tx(async t => {
-    // const hash = await bcrypt.hash(req.body.password, 10);
-
+    // Check if the username already exists
     const [row] = await t.any(
       `SELECT * FROM buffspace_main.user WHERE username = $1`, [username]
-      );
+    );
 
+    // Validate passwords and existing username
     if (row || (password !== confirmPassword)) {
-      throw new Error(`choose another username or password does not match`);
+      throw new Error(`Choose another username or ensure passwords match.`);
     }
 
-    // There are either no prerequisites, or all have been taken.
+    // Insert new user into the database
     await t.none(
-        'INSERT INTO buffspace_main.user(username, password) VALUES ($1, $2);',
-          [username, password]
-        );
-      })
-        .then(signup => {
-          //console.info(courses);
-          res.render('pages/login', {
-              username: user.username,
-              password: user.password,
-              message: `Success`,
-          });
-          res.session.user = user;
-          res.session.save();
-        })
-        .catch(err => {
-          console.log(err);
-          res.render('pages/signup', {
-            error: true,
-            message: err.message,
-          });
-        });
+      'INSERT INTO buffspace_main.user(username, password) VALUES ($1, $2);',
+      [username, password]
+    );
+  })
+    .then(() => {
+      // Redirect to the signup page with a success query parameter
+      res.redirect('/signup?signupSuccess=true');
+    })
+    .catch(err => {
+      console.log(err);
+      // Render the signup page with an error message
+      res.render('pages/signup', {
+        error: true,
+        message: err.message,
+      });
+    });
 });
+
 
 app.get('/logout', (req, res) => {
   req.session.destroy(err => {
