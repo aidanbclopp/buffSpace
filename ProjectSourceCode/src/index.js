@@ -249,9 +249,13 @@ app.get('/profile/:username?', auth, async (req, res) => {
 app.get('/edit-profile', auth, async (req, res) => {
   const userId = req.session.user.user_id;
   const query = `
-    SELECT p.*, u.username
+    SELECT 
+      p.*,
+      u.username,
+      sm.major_id
     FROM buffspace_main.profile p
     JOIN buffspace_main.user u ON p.user_id = u.user_id
+    LEFT JOIN buffspace_main.student_majors sm ON sm.user_id = p.user_id
     WHERE p.user_id = $1
   `;
   const values = [userId];
@@ -259,7 +263,10 @@ app.get('/edit-profile', auth, async (req, res) => {
   try {
     const profileData = await db.one(query, values);
     const majors = await fetchMajors(); // Fetch majors
-    res.render('pages/edit-profile', { profile: profileData, majors }); // Pass majors to the view
+    res.render('pages/edit-profile', { 
+      profile: profileData, 
+      majors 
+    }); 
   } catch (err) {
     console.log(err);
     res.redirect('/profile');
@@ -269,10 +276,9 @@ app.get('/edit-profile', auth, async (req, res) => {
 // POST route to handle profile updates
 app.post('/edit-profile', auth, async (req, res) => {
   const userId = req.session.user.user_id;
-  const { major_id, ...profileData } = req.body; // Destructure major_id from the form data
+  const { major_id, ...profileData } = req.body;
 
   try {
-    // Start a transaction
     await db.tx(async t => {
       // Update profile
       await t.none(`
@@ -282,11 +288,18 @@ app.post('/edit-profile', auth, async (req, res) => {
           last_name = $2,
           graduation_year = $3,
           bio = $4,
-          status = $5
-        WHERE user_id = $6
-      `, [profileData.first_name, profileData.last_name, 
-          profileData.graduation_year, profileData.bio, 
-          profileData.status, userId]);
+          status = $5,
+          profile_picture_url = $6
+        WHERE user_id = $7
+      `, [
+        profileData.first_name, 
+        profileData.last_name, 
+        profileData.graduation_year, 
+        profileData.bio, 
+        profileData.status,
+        profileData.profile_picture_url,
+        userId
+      ]);
 
       // Update student_majors (first remove old major, then add new one)
       await t.none('DELETE FROM buffspace_main.student_majors WHERE user_id = $1', [userId]);
@@ -299,9 +312,12 @@ app.post('/edit-profile', auth, async (req, res) => {
     res.redirect('/profile');
   } catch (error) {
     console.error(error);
+    const majors = await fetchMajors();
     res.render('pages/edit-profile', {
       error: true,
-      message: 'Error updating profile'
+      message: 'Error updating profile',
+      profile: req.body,
+      majors
     });
   }
 });
