@@ -121,7 +121,7 @@ CREATE TABLE buffspace_main.majors
     major_id    SERIAL
         constraint majors_pk
             primary key,
-    major_name  varchar(100) not null,
+    major_name  varchar(100) not null
 );
 
 CREATE TABLE buffspace_main.student_majors

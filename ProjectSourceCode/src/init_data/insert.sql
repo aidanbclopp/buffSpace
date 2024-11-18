@@ -84,6 +84,20 @@ VALUES
   (4448, 'Object-Oriented Analysis and Design'),
   (4502, 'Data Mining');
 
+INSERT INTO buffspace_main.majors
+  (major_id, major_name)
+VALUES
+  (1, 'Computer Science (BA)'),
+  (2, 'Computer Engineering (BS)'),
+  (3, 'Electrical Engineering (BS)'),
+  (4, 'Mechanical Engineering (BS)'),
+  (5, 'Civil Engineering (BS)'),
+  (6, 'Chemical Engineering (BS)'),
+  (7, 'Biomedical Engineering (BS)'),
+  (8, 'Aerospace Engineering (BS)'),
+  (9, 'Industrial Engineering (BS)'),
+  (10, 'Environmental Engineering (BS)');
+
 
 /* This needs to be the last part of file */
 SELECT setval('buffspace_main.user_user_id_seq', (SELECT MAX(user_id) FROM buffspace_main.user) + 1);
