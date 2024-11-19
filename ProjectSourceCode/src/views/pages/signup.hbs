@@ -173,6 +173,13 @@
 <h1>Sign Up for BuffSpace</h1>
 
 <div class="signup-form">
+    <!-- Display error message if present -->
+    {{#if error}}
+    <div class="error-message">
+        {{message}}
+    </div>
+    {{/if}}
+
     <form action="/signup" method="POST">
         <div class="form-group">
             <label for="username">Username:</label>

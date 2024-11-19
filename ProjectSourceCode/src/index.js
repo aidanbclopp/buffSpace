@@ -154,10 +154,11 @@ app.post('/signup', (req, res) => {
       // Render the signup page with an error message
       res.render('pages/signup', {
         error: true,
-        message: err.message,
+        message: err.message, // Pass error message to the template
       });
     });
 });
+
 
 
 app.get('/logout', (req, res) => {
@@ -226,28 +227,28 @@ app.get('/login', (req, res) => {
 app.post('/login', (req, res) => {
   const username = req.body.username;
   const password = req.body.password;
-  const query = 'select * from buffspace_main.user where username = $1 and password = $2 LIMIT 1';
-  const values = [username, password];
 
-  // get the user_id based on the password
-  db.one(query, values)
-    .then(data => {
-      user.user_id = data.user_id;
-      user.username = username;
-      user.password = data.password;
-      user.created_at = data.created_at;
-      user.last_login = data.last_login;
-
-      req.session.user = user;
-      req.session.save();
-
-      res.redirect('/homepage');
+  db.one('SELECT * FROM buffspace_main.user WHERE username = $1 LIMIT 1', [username])
+    .then(user => {
+      if (user.password === password) {
+        req.session.user = {
+          user_id: user.user_id,
+          username: user.username,
+          created_at: user.created_at,
+          last_login: user.last_login,
+        };
+        req.session.save();
+        res.redirect('/homepage');
+      } else {
+        res.render('pages/login', { error: true, message: 'Incorrect Password/Username.' });
+      }
     })
     .catch(err => {
-      console.log(err);
-      res.redirect('/login');
+      console.error(err);
+      res.render('pages/login', { error: true, message: 'Username not found.' });
     });
 });
+
 
 app.get('/welcome', (req, res) => {
   res.json({status: 'success', message: 'Welcome!'});
