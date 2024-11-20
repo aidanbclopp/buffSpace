@@ -130,28 +130,30 @@
     <h1>Login to BuffSpace</h1>
 
     <div class="login-form">
+        <!-- Display error messages dynamically -->
+        {{#if error}}
+        <p class="error-message">{{message}}</p>
+        {{/if}}
+
         <form action="/login" method="POST">
             <div class="form-group">
                 <label for="username">Username:</label>
-                <input type="text" id="username" name="username" class="form-control" required
-                    placeholder="Enter your username">
+                <input type="text" id="username" name="username" class="form-control" required placeholder="Enter your username">
             </div>
 
             <div class="form-group">
                 <label for="password">Password:</label>
-                <input type="password" id="password" name="password" class="form-control" required
-                    placeholder="Enter your password">
+                <input type="password" id="password" name="password" class="form-control" required placeholder="Enter your password">
             </div>
 
             <button type="submit" class="btn-primary">Login</button>
+
             <section id="auth-links" style="margin-top: 20px; text-align: center;">
                 <a>Don't have an account? </a>
                 <a href="/register">Create one!</a>
             </section>
-
-
+        </form>
     </div>
 
 </body>
-
 </html>

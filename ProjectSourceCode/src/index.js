@@ -101,7 +101,8 @@ const user = {
 };
 
 app.get('/signup', (req, res) => {
-  res.render('pages/signup');
+  const signupSuccess = req.query.signupSuccess === 'true'; // Check if the signup was successful
+  res.render('pages/signup', { signupSuccess });
 });
 
 app.post('/signup', (req, res) => {
@@ -112,40 +113,37 @@ app.post('/signup', (req, res) => {
   console.log(req.body);
 
   db.tx(async t => {
-    // const hash = await bcrypt.hash(req.body.password, 10);
-
+    // Check if the username already exists
     const [row] = await t.any(
       `SELECT * FROM buffspace_main.user WHERE username = $1`, [username]
-      );
+    );
 
+    // Validate passwords and existing username
     if (row || (password !== confirmPassword)) {
-      throw new Error(`choose another username or password does not match`);
+      throw new Error(`Choose another username or ensure passwords match.`);
     }
 
-    // There are either no prerequisites, or all have been taken.
+    // Insert new user into the database
     await t.none(
-        'INSERT INTO buffspace_main.user(username, password) VALUES ($1, $2);',
-          [username, password]
-        );
-      })
-        .then(signup => {
-          //console.info(courses);
-          res.render('pages/login', {
-              username: user.username,
-              password: user.password,
-              message: `Success`,
-          });
-          res.session.user = user;
-          res.session.save();
-        })
-        .catch(err => {
-          console.log(err);
-          res.render('pages/signup', {
-            error: true,
-            message: err.message,
-          });
-        });
+      'INSERT INTO buffspace_main.user(username, password) VALUES ($1, $2);',
+      [username, password]
+    );
+  })
+    .then(() => {
+      // Redirect to the signup page with a success query parameter
+      res.redirect('/signup?signupSuccess=true');
+    })
+    .catch(err => {
+      console.log(err);
+      // Render the signup page with an error message
+      res.render('pages/signup', {
+        error: true,
+        message: err.message, // Pass error message to the template
+      });
+    });
 });
+
+
 
 app.get('/logout', (req, res) => {
   req.session.destroy(err => {
@@ -213,28 +211,28 @@ app.get('/login', (req, res) => {
 app.post('/login', (req, res) => {
   const username = req.body.username;
   const password = req.body.password;
-  const query = 'select * from buffspace_main.user where username = $1 and password = $2 LIMIT 1';
-  const values = [username, password];
 
-  // get the user_id based on the password
-  db.one(query, values)
-    .then(data => {
-      user.user_id = data.user_id;
-      user.username = username;
-      user.password = data.password;
-      user.created_at = data.created_at;
-      user.last_login = data.last_login;
-
-      req.session.user = user;
-      req.session.save();
-
-      res.redirect('/homepage');
+  db.one('SELECT * FROM buffspace_main.user WHERE username = $1 LIMIT 1', [username])
+    .then(user => {
+      if (user.password === password) {
+        req.session.user = {
+          user_id: user.user_id,
+          username: user.username,
+          created_at: user.created_at,
+          last_login: user.last_login,
+        };
+        req.session.save();
+        res.redirect('/homepage');
+      } else {
+        res.render('pages/login', { error: true, message: 'Incorrect Password/Username.' });
+      }
     })
     .catch(err => {
-      console.log(err);
-      res.redirect('/login');
+      console.error(err);
+      res.render('pages/login', { error: true, message: 'Username not found.' });
     });
 });
+
 
 app.get('/welcome', (req, res) => {
   res.json({status: 'success', message: 'Welcome!'});
@@ -500,6 +498,209 @@ app.post('/posts', auth, (req, res) => {
         console.log(err);
         res.redirect('/homepage');
       });
+});
+
+app.get('/friends', async (req, res) => {
+  try {
+    const user = req.session.user;
+    // Fetch friends data from the database
+    const friends = await db.any(`
+      SELECT f.user_id_1, f.user_id_2, pr.first_name, pr.last_name, pr.profile_picture_url, pr.status
+      FROM buffspace_main.friend f, buffspace_main.profile pr
+      WHERE f.user_id_1 = ${user.user_id} AND f.user_id_2 = pr.user_id
+    `);
+    // Render the page and pass the friends data to the Handlebars template
+    res.render('pages/friends', { friends: friends });
+  } catch (error) {
+    console.error('Error fetching friends:', error);
+    res.status(500).send('Internal Server Error');
+  }
+});
+
+//delete friends
+app.post('/friends', auth, (req, res) => {
+  const user_id_1 = req.session.user.user_id;
+  const user_id_2 = req.body.user_id;
+
+  const query = `DELETE FROM buffspace_main.friend WHERE user_id_1 = $1 AND user_id_2 = $2 RETURNING *`;
+
+  const values = [user_id_1, user_id_2];
+
+  db.one(query, values)
+    .then(() => {
+
+      res.redirect('/friends');
+    })
+    .catch(err => {
+      console.log(err);
+      res.redirect('/friends');
+    });
+});
+
+
+// Add these routes to your index.js
+
+// Initial chat page load
+app.get('/chat', auth, async (req, res) => {
+  const userId = req.session.user.user_id;
+  try {
+    // Get user's profile
+    const profile = await db.one(
+        'SELECT * FROM buffspace_main.profile WHERE user_id = $1',
+        [userId]
+    );
+
+    // Get user's friends list with their latest message
+    const friends = await db.any(`
+            SELECT 
+                p.*, 
+                f.user_id_2,
+                (
+                    SELECT content 
+                    FROM buffspace_main.message 
+                    WHERE (from_user_id = f.user_id_1 AND to_user_id = f.user_id_2)
+                       OR (from_user_id = f.user_id_2 AND to_user_id = f.user_id_1)
+                    ORDER BY created_at DESC 
+                    LIMIT 1
+                ) as last_message
+            FROM buffspace_main.friend f
+            JOIN buffspace_main.profile p ON p.user_id = f.user_id_2
+            WHERE f.user_id_1 = $1
+            ORDER BY (
+                SELECT created_at 
+                FROM buffspace_main.message 
+                WHERE (from_user_id = f.user_id_1 AND to_user_id = f.user_id_2)
+                   OR (from_user_id = f.user_id_2 AND to_user_id = f.user_id_1)
+                ORDER BY created_at DESC 
+                LIMIT 1
+            ) DESC NULLS LAST
+        `, [userId]);
+
+    res.render('pages/chat', {
+      profile,
+      friends,
+      user: req.session.user
+    });
+  } catch (error) {
+    console.error('Error loading chat page:', error);
+    res.status(500).send('Error loading chat page');
+  }
+});
+
+// Chat page with specific friend selected
+app.get('/chat/:friendId', auth, async (req, res) => {
+  const userId = req.session.user.user_id;
+  try {
+    // Get user's profile
+    const profile = await db.one(
+        'SELECT * FROM buffspace_main.profile WHERE user_id = $1',
+        [userId]
+    );
+
+    // Get user's friends list
+    const friends = await db.any(`
+            SELECT 
+                p.*, 
+                f.user_id_2,
+                (
+                    SELECT content 
+                    FROM buffspace_main.message 
+                    WHERE (from_user_id = f.user_id_1 AND to_user_id = f.user_id_2)
+                       OR (from_user_id = f.user_id_2 AND to_user_id = f.user_id_1)
+                    ORDER BY created_at DESC 
+                    LIMIT 1
+                ) as last_message
+            FROM buffspace_main.friend f
+            JOIN buffspace_main.profile p ON p.user_id = f.user_id_2
+            WHERE f.user_id_1 = $1
+            ORDER BY (
+                SELECT created_at 
+                FROM buffspace_main.message 
+                WHERE (from_user_id = f.user_id_1 AND to_user_id = f.user_id_2)
+                   OR (from_user_id = f.user_id_2 AND to_user_id = f.user_id_1)
+                ORDER BY created_at DESC 
+                LIMIT 1
+            ) DESC NULLS LAST
+        `, [userId]);
+
+    // Get selected friend's info and messages
+    const selectedFriend = await db.one(`
+            SELECT p.*, u.user_id
+            FROM buffspace_main.profile p
+            JOIN buffspace_main.user u ON p.user_id = u.user_id
+            WHERE p.user_id = $1
+        `, [req.params.friendId]);
+
+    const messages = await db.any(`
+            SELECT 
+                m.*,
+                EXTRACT(EPOCH FROM m.created_at) * 1000 as timestamp
+            FROM buffspace_main.message m
+            WHERE (from_user_id = $1 AND to_user_id = $2)
+               OR (from_user_id = $2 AND to_user_id = $1)
+            ORDER BY m.created_at ASC
+        `, [userId, req.params.friendId]);
+
+    res.render('pages/chat', {
+      profile,
+      friends,
+      selectedFriend,
+      messages,
+      user: req.session.user
+    });
+  } catch (error) {
+    console.error('Error loading chat page:', error);
+    res.status(500).send('Error loading chat page');
+  }
+});
+
+// API endpoint for loading chat messages
+app.get('/api/chat/:friendId', auth, async (req, res) => {
+  const userId = req.session.user.user_id;
+  try {
+    const selectedFriend = await db.one(`
+            SELECT p.*, u.user_id
+            FROM buffspace_main.profile p
+            JOIN buffspace_main.user u ON p.user_id = u.user_id
+            WHERE p.user_id = $1
+        `, [req.params.friendId]);
+
+    const messages = await db.any(`
+            SELECT 
+                m.*,
+                EXTRACT(EPOCH FROM m.created_at) * 1000 as timestamp
+            FROM buffspace_main.message m
+            WHERE (from_user_id = $1 AND to_user_id = $2)
+               OR (from_user_id = $2 AND to_user_id = $1)
+            ORDER BY m.created_at ASC
+        `, [userId, req.params.friendId]);
+
+    res.json({
+      selectedFriend,
+      messages,
+      user: req.session.user
+    });
+  } catch (error) {
+    console.error('Error loading chat:', error);
+    res.status(500).json({ error: 'Error loading chat' });
+  }
+});
+
+// API endpoint for sending messages
+app.post('/api/messages', auth, async (req, res) => {
+  const fromUserId = req.session.user.user_id;
+  const { to_user_id, content } = req.body;
+
+  try {
+    await db.none(
+        'INSERT INTO buffspace_main.message (from_user_id, to_user_id, content) VALUES ($1, $2, $3)',
+        [fromUserId, to_user_id, content]
+    );
+    res.json({ success: true });
+  } catch (error) {
+    console.error('Error sending message:', error);
+    res.status(500).json({ error: 'Error sending message' });
+  }
 });
 
 module.exports = app.listen(3000);
