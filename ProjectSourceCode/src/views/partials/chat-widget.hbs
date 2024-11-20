@@ -2,20 +2,21 @@
     <h2>Recent Messages</h2>
     <div class="chat-messages">
         {{#each messages}}
-            <div class="chat-message">
-                <div class="message-header">
-                    <img src="{{this.profile_picture_url}}" class="avatar"
-                         onerror="this
-                    .onerror=null;this.src='https://e7.pngegg.com/pngimages/926/34/png-clipart-computer-icons-user-profile-avatar-avatar-face-heroes.png';">
-                    <div class="message-details">
-                        <h3>{{this.first_name}} {{this.last_name}}</h3>
-                        <span>{{this.created_at}}</span>
+            <a href="/chat/{{this.from_user_id}}" class="chat-message-link">
+                <div class="chat-message">
+                    <div class="message-header">
+                        <img src="{{this.profile_picture_url}}" class="avatar"
+                             onerror="this.onerror=null;this.src='https://e7.pngegg.com/pngimages/926/34/png-clipart-computer-icons-user-profile-avatar-avatar-face-heroes.png';">
+                        <div class="message-details">
+                            <h3>{{this.first_name}} {{this.last_name}}</h3>
+                            <span>{{this.created_at}}</span>
+                        </div>
+                    </div>
+                    <div class="message-content">
+                        <p>{{this.content}}</p>
                     </div>
                 </div>
-                <div class="message-content">
-                    <p>{{this.content}}</p>
-                </div>
-            </div>
+            </a>
         {{/each}}
     </div>
 </div>
@@ -35,12 +36,24 @@
         font-size: 1.4rem;
     }
 
+    .chat-message-link {
+        text-decoration: none;
+        color: inherit;
+        display: block;
+    }
+
     .chat-message {
         background-color: #fff;
         padding: 10px;
         border-radius: 5px;
         box-shadow: 0 1px 2px rgba(0, 0, 0, 0.1);
         margin-bottom: 10px;
+        transition: background-color 0.2s ease;
+    }
+
+    .chat-message:hover {
+        background-color: #f5f5f5;
+        cursor: pointer;
     }
 
     .message-header {
@@ -65,6 +78,7 @@
     .message-content p {
         margin: 5px 0 0;
         font-size: 0.9rem;
+        color: #333;
     }
 
     .avatar {

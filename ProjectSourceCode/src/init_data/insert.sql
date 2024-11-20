@@ -9,7 +9,8 @@ VALUES
     (6,'emma','cheez', DEFAULT),
     (7,'fiona','cheez', DEFAULT),
     (8,'george','cheez', DEFAULT),
-    (9,'hannah','cheez', DEFAULT);
+    (9,'hannah','cheez', DEFAULT),
+    (10,'CamTheRam','beef', DEFAULT);
 
 INSERT INTO buffspace_main.profile
   (user_id, bio, profile_picture_url, first_name, last_name, graduation_year, major, status)
@@ -34,7 +35,10 @@ VALUES
     (6, 'Emma', 'Lopez', 'https://content.wepik.com/statics/20269016/preview-page1.jpg'),
     (7, 'Fiona', 'Shrek', 'https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcTo9tUMVlpZVjqC2ympZR0fOHZJDfmqQev8JTqDcoO6hSqk9kpCczZTDgPH_PYakXPFf6o&usqp=CAU'),
     (8, 'George', 'Georgish', 'https://content.wepik.com/statics/21209543/preview-page6.jpg'),
-    (9, 'Hannah', 'Banana', 'https://content.wepik.com/statics/21209540/preview-page3.jpg');
+    (9, 'Hannah', 'Banana', 'https://content.wepik.com/statics/21209540/preview-page3.jpg'),
+    (10, 'CAM', 'the Ram', 'https://mascothalloffame.com/wp-content/uploads/bb-plugin/cache/cam-e1678881220838-circle' ||
+                           '.jpg');
+
 
 INSERT INTO buffspace_main.friend (user_id_1, user_id_2, user_1_ranking, user_2_ranking)
 VALUES
@@ -50,7 +54,8 @@ VALUES
 INSERT INTO buffspace_main.post (user_id, content, image_url, created_at)
 VALUES
     (2, 'oh lawd he comin', 'https://i.redd.it/6uk0m6nclyd21.jpg', '2024-11-07 12:34:56'),
-    (3, 'he do a thonk', 'https://pbs.twimg.com/media/FxBERTuWYAEPqSU.jpg:large', '2024-11-05 08:22:01');
+    (3, 'he do a thonk', 'https://pbs.twimg.com/media/FxBERTuWYAEPqSU.jpg:large', '2024-11-05 08:22:01'),
+    (10, 'hopefully no one notices me', NULL, '2024-09-14 17:30:05');
 
 INSERT INTO buffspace_main.message (from_user_id, to_user_id, content, created_at)
 VALUES
