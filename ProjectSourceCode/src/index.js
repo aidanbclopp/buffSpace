@@ -431,52 +431,107 @@ app.post('/create-profile', auth, (req, res) => {
 
 //SCAFFOLDING END
 
+// Helper function to build the post query based on filter
+const buildPostQuery = (filter, userId) => {
+  let baseQuery = `
+    SELECT po.user_id, content, image_url,
+           to_char(created_at, 'HH12:MI AM MM/DD/YYYY') AS created_at,
+           first_name, last_name, profile_picture_url
+    FROM buffspace_main.post po
+           JOIN buffspace_main.profile pr ON po.user_id = pr.user_id
+  `;
+
+  switch (filter) {
+    case 'just-me':
+      baseQuery += ` WHERE po.user_id = ${userId}`;
+      break;
+    case 'friends':
+      baseQuery += `
+        WHERE po.user_id IN (
+          SELECT user_id_2 
+          FROM buffspace_main.friend 
+          WHERE user_id_1 = ${userId}
+        ) OR po.user_id = ${userId}
+      `;
+      break;
+    case 'all':
+      // No WHERE clause needed - show all posts
+      break;
+    default:
+      // Default to friends' posts if no valid filter
+      baseQuery += `
+        WHERE po.user_id IN (
+          SELECT user_id_2 
+          FROM buffspace_main.friend 
+          WHERE user_id_1 = ${userId}
+        ) OR po.user_id = ${userId}
+      `;
+  }
+
+  return baseQuery + ' ORDER BY po.created_at DESC';
+};
+
+// Update the homepage route to handle filters
 app.get('/homepage', async (req, res) => {
   if (!req.session.user) {
-    res.redirect('/login');
-
+    return res.redirect('/login');
   }
+
   const user = req.session.user;
+  const filter = req.query.filter || 'friends'; // Default to friends' posts
+  const sort = req.query.sort || 'date'; // Default to date sorting
 
-  const selectProfile = `
-    SELECT * FROM buffspace_main.profile WHERE user_id = $1;
-  `;
+  try {
+    // Get user profile
+    const selectProfile = `SELECT * FROM buffspace_main.profile WHERE user_id = $1;`;
+    const profile = await db.oneOrNone(selectProfile, [user.user_id]);
 
-  const profile = await db.oneOrNone(selectProfile, [user.user_id]);
+    if (!profile) {
+      return res.redirect('/create-profile');
+    }
 
-  if (!profile) {
-    return res.redirect('/create-profile');
-  }
-
-  const selectFriends = `
-    SELECT f.user_id_2, user_2_ranking, first_name, last_name, profile_picture_url
-    FROM buffspace_main.friend f, buffspace_main.profile pr
-    WHERE f.user_id_1 = ${user.user_id} AND f.user_id_2 = pr.user_id
-    ORDER BY user_2_ranking DESC LIMIT 8;
-  `;
-
-  const topFriends = await db.any(selectFriends);
-
-  const selectPosts = `
-    SELECT po.user_id, content, image_url,
-           to_char(created_at, 'HH12:MI AM MM/DD/YYYY') AS created_at, first_name, last_name, 
-           profile_picture_url
-    FROM buffspace_main.post po, buffspace_main.profile pr
-    WHERE po.user_id = pr.user_id
-    ORDER BY po.created_at DESC;
+    // Get friends
+    const selectFriends = `
+      SELECT f.user_id_2, user_2_ranking, first_name, last_name, profile_picture_url
+      FROM buffspace_main.friend f, buffspace_main.profile pr
+      WHERE f.user_id_1 = ${user.user_id} AND f.user_id_2 = pr.user_id
+      ORDER BY user_2_ranking DESC LIMIT 8;
     `;
+    const topFriends = await db.any(selectFriends);
 
-  const posts = await db.any(selectPosts);
+    // Get posts with filter
+    let postsQuery = buildPostQuery(filter, user.user_id);
+    let posts = await db.any(postsQuery);
 
-  const selectMessages = `
-    SELECT m.from_user_id, content, to_char(created_at, 'HH12:MI AM MM/DD/YYYY') AS created_at, first_name, last_name, profile_picture_url
-    FROM buffspace_main.message m, buffspace_main.profile pr
-    WHERE m.to_user_id = ${user.user_id} AND m.from_user_id = pr.user_id
-  `;
+    // Apply sorting
+    if (sort === 'random') {
+      posts = posts.sort(() => Math.random() - 0.5);
+    }
+    // Date sorting is handled by the ORDER BY in the query
 
-  const recentMessages = await db.any(selectMessages);
+    // Get messages
+    const selectMessages = `
+      SELECT m.from_user_id, content, 
+             to_char(created_at, 'HH12:MI AM MM/DD/YYYY') AS created_at, 
+             first_name, last_name, profile_picture_url
+      FROM buffspace_main.message m, buffspace_main.profile pr
+      WHERE m.to_user_id = ${user.user_id} AND m.from_user_id = pr.user_id
+      ORDER BY created_at DESC LIMIT 1;
+    `;
+    const recentMessages = await db.any(selectMessages);
 
-  res.render('pages/homepage', { profile, topFriends, posts, recentMessages });
+    res.render('pages/homepage', {
+      profile,
+      topFriends,
+      posts,
+      recentMessages,
+      activeFilter: filter,
+      activeSort: sort
+    });
+  } catch (error) {
+    console.error('Error loading homepage:', error);
+    res.status(500).send('Error loading homepage');
+  }
 });
 
 app.post('/posts', auth, (req, res) => {
