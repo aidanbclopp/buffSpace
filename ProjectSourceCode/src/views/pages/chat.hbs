@@ -50,12 +50,12 @@
                     </div>
 
                     <div class="message-input">
-                        <form action="/messages" method="POST" class="message-form" id="messageForm">
+                        <form class="message-form" id="messageForm">
                             <input type="hidden" name="to_user_id" value="{{selectedFriend.user_id}}">
                             <div class="form-group">
             <textarea name="content" class="form-control message-textarea"
                       placeholder="Type your message..."
-                      rows="1" required></textarea>
+                      rows="1"></textarea>
                             </div>
                             <div class="form-actions d-flex flex-row-reverse">
                                 <button type="submit" class="btn-primary">Send</button>
@@ -75,21 +75,234 @@
 </div>
 
 <script>
-    document.addEventListener('DOMContentLoaded', function() {
-        // Format timestamps to local timezone
-        function formatTimestamp(timestamp) {
-            const date = new Date(parseInt(timestamp));
-            const formatter = new Intl.DateTimeFormat('en-US', {
-                hour: 'numeric',
-                minute: 'numeric',
-                hour12: true,
-                month: 'short',
-                day: 'numeric',
-                year: 'numeric',
-                timeZoneName: 'short'
+    async function handleMessageSubmit(e) {
+        e.preventDefault();
+        const form = e.target;
+        const textarea = form.querySelector('.message-textarea');
+        const content = textarea.value.trim();
+        const to_user_id = parseInt(form.querySelector('[name="to_user_id"]').value);
+
+        if (!content) return false;
+
+        try {
+            const response = await fetch('/api/messages', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify({
+                    to_user_id: to_user_id,
+                    content: content
+                })
             });
-            return formatter.format(date);
+
+            if (response.ok) {
+                textarea.value = '';
+                await loadChat(to_user_id);
+
+                // Update the last message in friends list
+                const friendItem = document.querySelector(`.friend-chat-item[data-user-id="${to_user_id}"]`);
+                if (friendItem) {
+                    const lastMessageSpan = friendItem.querySelector('.last-message');
+                    if (lastMessageSpan) {
+                        lastMessageSpan.textContent = content;
+                    }
+                }
+
+                // Scroll to bottom after sending
+                scrollToBottom();
+            } else {
+                const errorData = await response.json();
+                console.error('Failed to send message:', errorData.error);
+            }
+        } catch (error) {
+            console.error('Error sending message:', error);
         }
+
+        return false;
+    }
+
+    async function loadChat(friendId) {
+        try {
+            const response = await fetch(`/api/chat/${friendId}`);
+            const data = await response.json();
+            updateChatWindow(data);
+        } catch (error) {
+            console.error('Error loading chat:', error);
+        }
+    }
+
+    function updateChatWindow(data) {
+        const chatContainer = document.querySelector('.chat-container');
+        if (!chatContainer) return;
+
+        // Update chat header
+        const headerHTML = `
+            <div class="chat-header">
+                <img src="${data.selectedFriend.profile_picture_url}" class="avatar"
+                     onerror="this.onerror=null;this.src='https://e7.pngegg.com/pngimages/926/34/png-clipart-computer-icons-user-profile-avatar-avatar-face-heroes.png';">
+                <div class="chat-header-info">
+                    <h2>${data.selectedFriend.first_name} ${data.selectedFriend.last_name}</h2>
+                    <span>${data.selectedFriend.status || ''}</span>
+                </div>
+            </div>`;
+
+        // Update messages
+        let messagesHTML = '<div class="messages-container">';
+        data.messages.forEach(msg => {
+            const isSent = msg.from_user_id === data.user.user_id;
+            messagesHTML += `
+                <div class="message ${isSent ? 'sent' : 'received'}">
+                    <div class="message-content">
+                        <p>${msg.content}</p>
+                        <span class="message-time" data-timestamp="${msg.timestamp}"></span>
+                    </div>
+                </div>`;
+        });
+        messagesHTML += '</div>';
+
+        // Update input form
+        const inputHTML = `
+        <div class="message-input">
+            <form class="message-form" id="messageForm">
+                <input type="hidden" name="to_user_id" value="${data.selectedFriend.user_id}">
+                <div class="form-group">
+                    <textarea name="content" class="form-control message-textarea"
+                            placeholder="Type your message..."
+                            rows="1"></textarea>
+                </div>
+                <div class="form-actions d-flex flex-row-reverse">
+                    <button type="submit" class="btn-primary">Send</button>
+                </div>
+            </form>
+        </div>`;
+
+        chatContainer.innerHTML = headerHTML + messagesHTML + inputHTML;
+
+        // Reattach event listeners
+        attachEventListeners();
+        updateTimestamps();
+        scrollToBottom();
+    }
+
+    function initializeEventListeners() {
+        const messageForm = document.getElementById('messageForm');
+        if (messageForm) {
+            messageForm.addEventListener('submit', handleMessageSubmit);
+        }
+        attachEventListeners();
+    }
+
+    function attachEventListeners() {
+        const messageTextarea = document.querySelector('.message-textarea');
+        const messageForm = document.getElementById('messageForm');
+
+        if (messageForm) {
+            // Remove any existing listeners to prevent duplicates
+            messageForm.removeEventListener('submit', handleMessageSubmit);
+            messageForm.addEventListener('submit', handleMessageSubmit);
+        }
+
+        if (messageTextarea) {
+            messageTextarea.addEventListener('keydown', function(e) {
+                if (e.key === 'Enter' && !e.shiftKey) {
+                    e.preventDefault();
+                    if (this.value.trim()) {
+                        const form = this.closest('form');
+                        if (form) {
+                            form.dispatchEvent(new Event('submit'));
+                        }
+                    }
+                }
+            });
+
+            messageTextarea.addEventListener('input', function() {
+                this.style.height = 'auto';
+                this.style.height = Math.min(this.scrollHeight, 150) + 'px';
+            });
+        }
+    }
+
+    function updateTimestamps() {
+        document.querySelectorAll('.message-time').forEach(timeElement => {
+            const timestamp = timeElement.getAttribute('data-timestamp');
+            if (timestamp) {
+                timeElement.textContent = formatTimestamp(timestamp);
+            }
+        });
+    }
+
+    function scrollToBottom() {
+        const messagesContainer = document.querySelector('.messages-container');
+        if (messagesContainer) {
+            messagesContainer.scrollTop = messagesContainer.scrollHeight;
+        }
+    }
+
+    // Format timestamps to local timezone
+    function formatTimestamp(timestamp) {
+        const date = new Date(parseInt(timestamp));
+        const formatter = new Intl.DateTimeFormat('en-US', {
+            hour: 'numeric',
+            minute: 'numeric',
+            hour12: true,
+            month: 'short',
+            day: 'numeric',
+            year: 'numeric',
+            timeZoneName: 'short'
+        });
+        return formatter.format(date);
+    }
+
+    function saveScrollPositions() {
+        const friendsScroll = document.querySelector('.friends-scroll-container');
+        if (friendsScroll) {
+            window.localStorage.setItem('friendsScrollPosition', friendsScroll.scrollTop);
+        }
+    }
+
+    function restoreScrollPositions() {
+        const friendsScroll = document.querySelector('.friends-scroll-container');
+        if (friendsScroll) {
+            const savedPosition = window.localStorage.getItem('friendsScrollPosition');
+            if (savedPosition) {
+                friendsScroll.scrollTop = parseInt(savedPosition);
+            }
+        }
+    }
+
+    document.querySelectorAll('.friend-chat-item').forEach(item => {
+        item.addEventListener('click', async function(e) {
+            e.preventDefault();
+            saveScrollPositions(); // Save scroll position before loading new chat
+
+            const friendId = this.dataset.userId;
+            window.history.pushState({}, '', `/chat/${friendId}`);
+            await loadChat(friendId);
+
+            document.querySelectorAll('.friend-chat-item').forEach(i => i.classList.remove('active'));
+            this.classList.add('active');
+
+            restoreScrollPositions(); // Restore scroll position after loading new chat
+        });
+    });
+
+    document.addEventListener('DOMContentLoaded', function() {
+        const searchInput = document.getElementById('friendSearch');
+        const friendItems = document.querySelectorAll('.friend-chat-item');
+
+        searchInput.addEventListener('input', function(e) {
+            const searchTerm = e.target.value.toLowerCase();
+
+            friendItems.forEach(item => {
+                const friendName = item.querySelector('.friend-name').textContent.toLowerCase();
+                if (friendName.includes(searchTerm)) {
+                    item.style.display = 'flex';
+                } else {
+                    item.style.display = 'none';
+                }
+            });
+        });
 
         // Update all message timestamps
         document.querySelectorAll('.message-time').forEach(timeElement => {
@@ -103,28 +316,14 @@
         const messageForm = document.getElementById('messageForm');
         const messageTextarea = document.querySelector('.message-textarea');
 
-        if (messageTextarea) {
-            messageTextarea.addEventListener('keydown', function(e) {
-                if (e.key === 'Enter' && !e.shiftKey) {
-                    e.preventDefault();
-                    if (this.value.trim()) {
-                        messageForm.submit();
-                    }
-                }
-            });
-
-            // Auto-expand textarea
-            messageTextarea.addEventListener('input', function() {
-                this.style.height = 'auto';
-                this.style.height = Math.min(this.scrollHeight, 150) + 'px'; // Limit max height to 150px
-            });
-        }
-
         // Auto-scroll to bottom of messages
         const messagesContainer = document.querySelector('.messages-container');
         if (messagesContainer) {
             messagesContainer.scrollTop = messagesContainer.scrollHeight;
         }
+
+        initializeEventListeners();
+        restoreScrollPositions();
     });
 </script>
 
