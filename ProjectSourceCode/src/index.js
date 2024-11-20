@@ -105,7 +105,7 @@ app.get('/friends', async (req, res) => {
   try {
     // Fetch friends data from the database
     const friends = await db.any('SELECT * FROM buffspace_main.profile');
-    
+
     // Render the page and pass the friends data to the Handlebars template
     res.render('pages/friends', { friends: friends });
   } catch (error) {
@@ -475,7 +475,7 @@ app.get('/homepage', async (req, res) => {
 
   const selectPosts = `
     SELECT po.user_id, content, image_url,
-           to_char(created_at, 'HH12:MI AM MM/DD/YYYY') AS created_at, first_name, last_name, 
+           to_char(created_at, 'HH12:MI AM MM/DD/YYYY') AS created_at, first_name, last_name,
            profile_picture_url
     FROM buffspace_main.post po, buffspace_main.profile pr
     WHERE po.user_id = pr.user_id
@@ -515,6 +515,27 @@ app.post('/posts', auth, (req, res) => {
         res.redirect('/homepage');
       });
 });
+
+//delete friends
+app.post('/friends', auth, (req, res) => {
+  const user_id_1 = req.session.user.user_id;
+  const user_id_2 = req.body.user_id;
+
+  const query = `DELETE FROM buffspace_main.friend WHERE user_id_1 = $1 AND user_id_2 = $2 RETURNING *`;
+
+  const values = [user_id_1, user_id_2];
+
+  db.one(query, values)
+    .then(() => {
+
+      res.redirect('/friends');
+    })
+    .catch(err => {
+      console.log(err);
+      res.redirect('/friends');
+    });
+});
+
 
 module.exports = app.listen(3000);
 console.log('Server is listening on port 3000');
