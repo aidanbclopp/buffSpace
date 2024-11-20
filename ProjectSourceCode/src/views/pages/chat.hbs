@@ -1,0 +1,398 @@
+<div class="chat-page-container">
+    <div class="main-content">
+        <div class="content-left">
+            <div class="sidebar-element">
+                {{> profile-widget profile=profile}}
+            </div>
+            <div class="friends-chat-list">
+                <div class="friends-header">
+                    <h2>Friends</h2>
+                    <div class="search-bar">
+                        <input type="text" id="friendSearch" placeholder="Search friends..." class="form-control">
+                    </div>
+                </div>
+                <div class="friends-scroll-container">
+                    {{#each friends}}
+                        <div class="friend-chat-item" data-user-id="{{this.user_id}}" onclick="window.location.href='/chat/{{this.user_id}}'">
+                            <img src="{{this.profile_picture_url}}" class="friend-avatar"
+                                 onerror="this.onerror=null;this.src='https://e7.pngegg.com/pngimages/926/34/png-clipart-computer-icons-user-profile-avatar-avatar-face-heroes.png';">
+                            <div class="friend-info">
+                                <h3 class="friend-name">{{this.first_name}} {{this.last_name}}</h3>
+                                <span class="last-message">{{this.last_message}}</span>
+                            </div>
+                        </div>
+                    {{/each}}
+                </div>
+            </div>
+        </div>
+
+        <div class="content-right">
+            <div class="chat-container">
+                {{#if selectedFriend}}
+                    <div class="chat-header">
+                        <img src="{{selectedFriend.profile_picture_url}}" class="avatar"
+                             onerror="this.onerror=null;this.src='https://e7.pngegg.com/pngimages/926/34/png-clipart-computer-icons-user-profile-avatar-avatar-face-heroes.png';">
+                        <div class="chat-header-info">
+                            <h2>{{selectedFriend.first_name}} {{selectedFriend.last_name}}</h2>
+                            <span>{{selectedFriend.status}}</span>
+                        </div>
+                    </div>
+
+                    <div class="messages-container">
+                        {{#each messages}}
+                            <div class="message {{#if (eq this.from_user_id ../user.user_id)}}sent{{else}}received{{/if}}">
+                                <div class="message-content">
+                                    <p>{{this.content}}</p>
+                                    <span class="message-time" data-timestamp="{{this.timestamp}}"></span>
+                                </div>
+                            </div>
+                        {{/each}}
+                    </div>
+
+                    <div class="message-input">
+                        <form action="/messages" method="POST" class="message-form" id="messageForm">
+                            <input type="hidden" name="to_user_id" value="{{selectedFriend.user_id}}">
+                            <div class="form-group">
+            <textarea name="content" class="form-control message-textarea"
+                      placeholder="Type your message..."
+                      rows="1" required></textarea>
+                            </div>
+                            <div class="form-actions d-flex flex-row-reverse">
+                                <button type="submit" class="btn-primary">Send</button>
+                            </div>
+                        </form>
+                    </div>
+                {{else}}
+                    <div class="empty-chat-state">
+                        <i class="bi bi-chat-square-text" style="font-size: 48px; color: #CFB87C;"></i>
+                        <h2>Select a friend to start chatting</h2>
+                        <p>Choose from your friends list on the left to begin a conversation</p>
+                    </div>
+                {{/if}}
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+        // Format timestamps to local timezone
+        function formatTimestamp(timestamp) {
+            const date = new Date(parseInt(timestamp));
+            const formatter = new Intl.DateTimeFormat('en-US', {
+                hour: 'numeric',
+                minute: 'numeric',
+                hour12: true,
+                month: 'short',
+                day: 'numeric',
+                year: 'numeric',
+                timeZoneName: 'short'
+            });
+            return formatter.format(date);
+        }
+
+        // Update all message timestamps
+        document.querySelectorAll('.message-time').forEach(timeElement => {
+            const timestamp = timeElement.getAttribute('data-timestamp');
+            if (timestamp) {
+                timeElement.textContent = formatTimestamp(timestamp);
+            }
+        });
+
+        // Handle message form submission
+        const messageForm = document.getElementById('messageForm');
+        const messageTextarea = document.querySelector('.message-textarea');
+
+        if (messageTextarea) {
+            messageTextarea.addEventListener('keydown', function(e) {
+                if (e.key === 'Enter' && !e.shiftKey) {
+                    e.preventDefault();
+                    if (this.value.trim()) {
+                        messageForm.submit();
+                    }
+                }
+            });
+
+            // Auto-expand textarea
+            messageTextarea.addEventListener('input', function() {
+                this.style.height = 'auto';
+                this.style.height = Math.min(this.scrollHeight, 150) + 'px'; // Limit max height to 150px
+            });
+        }
+
+        // Auto-scroll to bottom of messages
+        const messagesContainer = document.querySelector('.messages-container');
+        if (messagesContainer) {
+            messagesContainer.scrollTop = messagesContainer.scrollHeight;
+        }
+    });
+</script>
+
+<style>
+    body {
+        margin: 0;
+        padding: 0;
+        height: 100vh;
+        overflow: hidden;
+        background-image: url('https://aboutboulder.com/wp-content/uploads/2023/08/The-Vibrant-Campus-Life-at-CU-Boulder-scaled.jpeg');
+        background-size: cover;
+        background-position: center;
+        background-attachment: fixed;
+    }
+
+    .chat-page-container {
+        background-color: rgba(255, 255, 255, 0.9);
+        border-radius: 15px;
+        box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
+        padding: 30px;
+        width: 65%;
+        height: 85vh;
+        box-sizing: border-box;
+        margin: 20px auto;
+        overflow: hidden;
+    }
+
+    .main-content {
+        display: flex;
+        gap: 30px;
+        height: 100%;
+        overflow: hidden;
+    }
+
+    .content-left {
+        flex: 1;
+        max-width: 30%;
+        height: 100%;
+        display: flex;
+        flex-direction: column;
+    }
+
+    .content-right {
+        flex: 2;
+        height: 100%;
+    }
+
+    .sidebar-element {
+        flex-shrink: 0;
+        margin-bottom: 20px;
+    }
+
+    .friends-chat-list {
+        background-color: #f9f9f9;
+        border-radius: 10px;
+        box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+        flex-grow: 1;
+        display: flex;
+        flex-direction: column;
+        overflow: hidden;
+        min-height: 0; /* Important for Firefox */
+    }
+
+    .friends-header {
+        padding: 20px 20px 0 20px;
+        background-color: #f9f9f9;
+    }
+
+    .friends-scroll-container {
+        padding: 0 20px;
+        overflow-y: auto;
+        flex-grow: 1;
+    }
+
+    .chat-container {
+        background-color: #fff;
+        border-radius: 10px;
+        box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+        display: flex;
+        flex-direction: column;
+        height: 100%;
+    }
+
+    /* Adjust the chat header avatar size and layout */
+    .chat-header {
+        padding: 15px;
+        border-bottom: 1px solid #eee;
+        flex-shrink: 0;
+        display: flex;
+        align-items: center;
+    }
+
+    .chat-header .avatar {
+        width: 40px;        /* Reduced from default size */
+        height: 40px;       /* Reduced from default size */
+        border-radius: 50%;
+        object-fit: cover;  /* Ensures image maintains aspect ratio */
+    }
+
+    .chat-header-info {
+        margin-left: 15px;
+        display: flex;
+        flex-direction: column;
+    }
+
+    .chat-header-info h2 {
+        margin: 0;
+        font-size: 1.2rem;
+    }
+
+    .messages-container {
+        flex-grow: 1;
+        overflow-y: auto;
+        padding: 20px;
+        display: flex;
+        flex-direction: column;
+        min-height: 0; /* Important for Firefox */
+    }
+
+    .message-input {
+        padding: 15px;
+        border-top: 1px solid #eee;
+        flex-shrink: 0;
+    }
+
+    .empty-chat-state {
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        justify-content: center;
+        height: 100%;
+        text-align: center;
+        color: #666;
+        padding: 20px;
+    }
+
+    /* Scrollbar styles for friends list */
+    .friends-scroll-container::-webkit-scrollbar {
+        width: 6px;
+    }
+
+    .friends-scroll-container::-webkit-scrollbar-track {
+        background: #f1f1f1;
+        border-radius: 3px;
+    }
+
+    .friends-scroll-container::-webkit-scrollbar-thumb {
+        background: #CFB87C;
+        border-radius: 3px;
+    }
+
+    .friends-scroll-container::-webkit-scrollbar-thumb:hover {
+        background: #b59f6b;
+    }
+
+    /* Scrollbar styles for messages */
+    .messages-container::-webkit-scrollbar {
+        width: 6px;
+    }
+
+    .messages-container::-webkit-scrollbar-track {
+        background: #f1f1f1;
+        border-radius: 3px;
+    }
+
+    .messages-container::-webkit-scrollbar-thumb {
+        background: #CFB87C;
+        border-radius: 3px;
+    }
+
+    .messages-container::-webkit-scrollbar-thumb:hover {
+        background: #b59f6b;
+    }
+
+    /* Your existing styles for messages, inputs, etc. remain the same */
+    .friend-chat-item {
+        display: flex;
+        align-items: center;
+        padding: 10px;
+        border-radius: 8px;
+        cursor: pointer;
+        transition: background-color 0.3s;
+    }
+
+    .friend-chat-item:hover {
+        background-color: #f0f0f0;
+    }
+
+    .friend-chat-item.active {
+        background-color: #e0e0e0;
+    }
+
+    .friend-avatar {
+        width: 50px;
+        height: 50px;
+        border-radius: 50%;
+        margin-right: 15px;
+    }
+
+    .friend-info h3 {
+        margin: 0;
+        font-size: 1rem;
+    }
+
+    .last-message {
+        color: #666;
+        font-size: 0.9rem;
+    }
+
+    .message {
+        margin-bottom: 15px;
+        display: flex;
+    }
+
+    .message.sent {
+        justify-content: flex-end;
+    }
+
+    .message-content {
+        max-width: 70%;
+        padding: 10px 15px;
+        border-radius: 15px;
+        background-color: #f0f0f0;
+    }
+
+    .message.sent .message-content {
+        background-color: rgb(215, 183, 27);
+        color: white;
+    }
+
+    .message.sent .message-content .message-time {
+        color: rgba(255, 255, 255, 0.8);
+    }
+
+    .message-textarea {
+        width: 100%;
+        padding: 10px;
+        border: 1px solid #ddd;
+        border-radius: 5px;
+        resize: none;
+        overflow-y: auto;
+        max-height: 150px; /* Limit maximum height */
+        transition: height 0.1s ease;
+    }
+
+    .message-time {
+        font-size: 0.8rem;
+        color: #666;
+        margin-top: 5px;
+        display: block;
+    }
+
+    .message.sent .message-time {
+        color: rgba(255, 255, 255, 0.8);
+    }
+
+    .form-control {
+        width: 100%;
+        padding: 10px;
+        border: 1px solid #ddd;
+        border-radius: 5px;
+        resize: none;
+    }
+
+    .form-actions {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        margin-top: 10px;
+    }
+</style>
