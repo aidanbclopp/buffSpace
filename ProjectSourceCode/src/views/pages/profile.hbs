@@ -22,8 +22,23 @@
                 <div class="form-group">
                     <li><strong>Profile Song: </strong> <span>{{profile.song}}</span></li>
                     <input type="file" id="profile_song" name="profile_song" class="form-control" accept="audio/mp3">
-                    <small class="form-text">Upload an MP3 file that will play on your profile.</small>
+
+                    <div style="text-align: center;">
+                        <small class="form-text">Upload an MP3 file that will play on your profile.</small>
+                    </div>
+
+                    <p></p>
                 </div>
+
+                <div class="profile-audio"
+                    style="display: justify-content: center; align-items: center; text-align: center;">
+                    <audio controls>
+                        <source src="{{song_url}}" type="audio/mp3">
+                        Your browser does not support the audio element.
+                    </audio>
+                </div>
+
+
                 <li><strong>Last Updated:</strong> <span>{{profile.last_updated}}</span></li>
             </ul>
         </div>
