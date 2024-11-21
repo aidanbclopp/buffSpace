@@ -14,18 +14,16 @@ create table buffspace_main.user
         unique (username)
 );
 
-create table buffspace_main.profile_song
+CREATE TABLE buffspace_main.profile_song
 (
-    song_id           integer
-        constraint song_pk
-            primary key,
-    song_title        varchar(255) not null,
-    song_album        varchar(255),
-    song_artist       varchar(255),
-    spotify_url       varchar(255) not null,
-    spotify_image_url varchar(255) not null,
-    constraint song_ak
-        unique (song_title, song_artist)
+    song_id           INTEGER PRIMARY KEY,
+    song_title        VARCHAR(255) NOT NULL,
+    song_album        VARCHAR(255),
+    song_artist       VARCHAR(255),
+    spotify_url       VARCHAR(255),
+    spotify_image_url VARCHAR(255),
+    mp3_file_url      VARCHAR(255), -- Path to the uploaded MP3 file
+    CONSTRAINT song_ak UNIQUE (song_title, song_artist)
 );
 
 create table buffspace_main.profile

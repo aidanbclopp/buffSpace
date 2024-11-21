@@ -13,12 +13,12 @@ const bodyParser = require('body-parser');
 const session = require('express-session'); // To set the session object. To store or access session data, use the `req.session`, which is (generally) serialized as JSON by the store.
 const bcrypt = require('bcryptjs'); //  To hash passwords
 const axios = require('axios'); // To make HTTP requests from our server. We'll learn more about it in Part C.
+const multer = require('multer');
 
 
 // *****************************************************
 // <!-- Section 2 : Connect to DB -->
 // *****************************************************
-
 
 // create `ExpressHandlebars` instance and configure the layouts and partials dir.
 const hbs = handlebars.create({
@@ -93,11 +93,11 @@ app.get('/register', (req, res) => {
 });
 
 const user = {
-    user_id: undefined,
-    username: undefined,
-    password: undefined,
-    created_at: undefined,
-    last_login: undefined,
+  user_id: undefined,
+  username: undefined,
+  password: undefined,
+  created_at: undefined,
+  last_login: undefined,
 };
 
 
@@ -105,7 +105,7 @@ app.get('/friends', async (req, res) => {
   try {
     // Fetch friends data from the database
     const friends = await db.any('SELECT * FROM buffspace_main.profile');
-    
+
     // Render the page and pass the friends data to the Handlebars template
     res.render('pages/friends', { friends: friends });
   } catch (error) {
@@ -251,7 +251,7 @@ app.post('/login', (req, res) => {
 
 
 app.get('/welcome', (req, res) => {
-  res.json({status: 'success', message: 'Welcome!'});
+  res.json({ status: 'success', message: 'Welcome!' });
 });
 
 // Authentication middleware.
@@ -270,12 +270,57 @@ app.use(auth);
 // *****************************************************
 // starting the server and keeping the connection open to listen for more request
 
+// Configure Multer
+const storage = multer.diskStorage({
+  destination: (req, file, cb) => {
+    const uploadDir = path.join(__dirname, 'uploads');
+    cb(null, uploadDir); // Multer will handle directory creation if it doesn't exist
+  },
+  filename: (req, file, cb) => {
+    cb(null, Date.now() + path.extname(file.originalname)); // Unique filename
+  }
+});
+
+const upload = multer({ storage });
+
+app.post('/upload-song', upload.single('mp3'), async (req, res) => {
+  const filePath = req.file.path; // Path to the uploaded file
+  const userId = req.session.user.user_id
+
+  try {
+    // Insert song metadata and file path into the database
+    const result = await db.one(
+      `INSERT INTO buffspace_main.profile_song (song_title, mp3_file_url)
+       VALUES ($1, $2)
+       RETURNING song_id`, // Returns the ID of the inserted song
+      ["test", filePath]
+    );
+
+    const newSongId = result.song_id;
+
+    // Update the user's profile with the new song ID
+    await db.none(
+      `UPDATE buffspace_main.profile
+       SET song_id = $1
+       WHERE user_id = $2`,
+      [newSongId, userId]
+    );
+
+    res.redirect('/profile'); // Redirect back to the profile page
+
+  } catch (error) {
+    console.error('Error uploading song:', error);
+    res.status(500).send('Server Error');
+  }
+});
+
 app.get('/profile/:username?', auth, (req, res) => {
   const requestedUsername = req.params.username || req.session.user.username;
   const query = `
-    SELECT p.*, u.username, u.user_id
+    SELECT p.*, u.username, u.user_id, ps.mp3_file_url
     FROM buffspace_main.profile p
     JOIN buffspace_main.user u ON p.user_id = u.user_id
+    LEFT JOIN buffspace_main.profile_song ps ON p.song_id = ps.song_id
     WHERE u.username = $1
   `;
   const values = [requestedUsername];
@@ -362,6 +407,7 @@ app.post('/edit-profile', auth, (req, res) => {
     });
 });
 
+
 const profile = {
   profile_id: undefined,
   user_id: undefined,
@@ -441,8 +487,8 @@ app.post('/create-profile', auth, (req, res) => {
       res.render('pages/create-profile', {
         error: true,
         message: err.message,
+      });
     });
-  });
 });
 
 //SCAFFOLDING END
@@ -507,13 +553,13 @@ app.post('/posts', auth, (req, res) => {
   const values = [userId, content];
 
   db.query(query, values)
-      .then(result => {
-        res.redirect('/homepage');
-      })
-      .catch(err => {
-        console.log(err);
-        res.redirect('/homepage');
-      });
+    .then(result => {
+      res.redirect('/homepage');
+    })
+    .catch(err => {
+      console.log(err);
+      res.redirect('/homepage');
+    });
 });
 
 module.exports = app.listen(3000);

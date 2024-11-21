@@ -21,13 +21,16 @@
 
                 <div class="form-group">
                     <li><strong>Profile Song: </strong> <span>{{profile.song}}</span></li>
-                    <input type="file" id="profile_song" name="profile_song" class="form-control" accept="audio/mp3">
+                    <form action="/upload-song" method="POST" enctype="multipart/form-data">
+                        <input type="file" id="profile_song" name="mp3" class="form-control" accept="audio/mp3">
+                        <button type="submit">Upload Song</button>
+                    </form>
 
                     <div style="text-align: center;">
                         <small class="form-text">Upload an MP3 file that will play on your profile.</small>
                     </div>
-
                     <p></p>
+
                 </div>
 
                 <div class="profile-audio"
