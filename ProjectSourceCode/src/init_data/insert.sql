@@ -9,7 +9,8 @@ VALUES
     (6,'emma','cheez', DEFAULT),
     (7,'fiona','cheez', DEFAULT),
     (8,'george','cheez', DEFAULT),
-    (9,'hannah','cheez', DEFAULT);
+    (9,'hannah','cheez', DEFAULT),
+    (10,'john','doe', DEFAULT);
 
 INSERT INTO buffspace_main.majors
   (major_id, major_name)
@@ -57,7 +58,7 @@ VALUES
   (
     1, -- profile_id
     'I AM CHIP', -- bio
-    'https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcRmIo42UGDaWsRLggK0jDKeUhcwRe39QyC8hg&s', -- profile_picture_url
+    'https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcRmIo42UGDaWsRLggK0jDKeUhcwRe39QyC8hg&s',
     'CHIP', -- first_name
     'BUFFALO', -- last_name
     2024, -- graduation_year
@@ -70,14 +71,18 @@ VALUES
     (1, 1),  
     (2, 2),  
     (3, 1),  
-    (4, 3);  
+    (4, 3),
+    (10, 1);
 
 INSERT INTO buffspace_main.student_courses
     (user_id, course_id)
 VALUES
     (1, 3308),
     (1, 2824),
-    (1, 3002);
+    (1, 3002),
+    (10, 3308),
+    (10, 2824),
+    (10, 3002);
 
 INSERT INTO buffspace_main.profile (user_id, first_name, last_name, profile_picture_url)
 VALUES
@@ -89,6 +94,19 @@ VALUES
     (7, 'Fiona', 'Shrek', 'https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcTo9tUMVlpZVjqC2ympZR0fOHZJDfmqQev8JTqDcoO6hSqk9kpCczZTDgPH_PYakXPFf6o&usqp=CAU'),
     (8, 'George', 'Georgish', 'https://content.wepik.com/statics/21209543/preview-page6.jpg'),
     (9, 'Hannah', 'Banana', 'https://content.wepik.com/statics/21209540/preview-page3.jpg');
+
+
+INSERT INTO buffspace_main.profile (user_id, bio, profile_picture_url, first_name, last_name, graduation_year, status)
+VALUES
+  (
+    10, -- profile_id
+    'I''m a student at CU Boulder!', -- bio
+    'https://i.pinimg.com/736x/c0/74/9b/c0749b7cc401421662ae901ec8f9f660.jpghg&s', 
+    'John', -- first_name
+    'Doe', -- last_name
+    2027, -- graduation_year
+    'Active' -- status
+  );
 
 INSERT INTO buffspace_main.friend (user_id_1, user_id_2, user_1_ranking, user_2_ranking)
 VALUES
