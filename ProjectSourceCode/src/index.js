@@ -485,50 +485,74 @@ app.get('/buffcircle', auth, async (req, res) => {
   const userId = req.session.user.user_id;
 
   try {
-    // Fetch the user's profile
-    const profileQuery = `
-      SELECT * FROM buffspace_main.profile WHERE user_id = $1;
-    `;
-    const profile = await db.oneOrNone(profileQuery, [userId]);
-
-    // Fetch majors, classes, and interests (assuming you have these tables)
-    const majorsQuery = `SELECT * FROM buffspace_main.majors;`;
-    const classesQuery = `SELECT * FROM buffspace_main.classes;`;
-    const interestsQuery = `SELECT * FROM buffspace_main.interests;`;
-    const suggestedFriendsQuery = `
-      SELECT u.user_id, u.username, p.profile_picture_url
-      FROM buffspace_main.user u
-      JOIN buffspace_main.profile p ON u.user_id = p.user_id
-      WHERE u.user_id != $1
-      LIMIT 8;  // Adjust the limit as needed
+    // Get current user's profile, major, and courses
+    const userProfileQuery = `
+      SELECT 
+        p.*,
+        m.major_id,
+        m.major_name,
+        array_agg(DISTINCT c.course_name) as enrolled_courses
+      FROM buffspace_main.profile p
+      LEFT JOIN buffspace_main.student_majors sm ON p.user_id = sm.user_id
+      LEFT JOIN buffspace_main.majors m ON sm.major_id = m.major_id
+      LEFT JOIN buffspace_main.student_courses sc ON p.user_id = sc.user_id
+      LEFT JOIN buffspace_main.courses c ON sc.course_id = c.course_id
+      WHERE p.user_id = $1
+      GROUP BY p.profile_id, m.major_id, m.major_name;
     `;
 
-    const [majors, classes, interests, suggestedFriends] = await Promise.all([
-      db.any(majorsQuery),
-      db.any(classesQuery),
-      db.any(interestsQuery),
-      db.any(suggestedFriendsQuery, [userId])
+    // Find potential matches based on shared majors and courses
+    const matchesQuery = `
+      WITH user_courses AS (
+        SELECT course_id FROM buffspace_main.student_courses WHERE user_id = $1
+      ),
+      user_major AS (
+        SELECT major_id FROM buffspace_main.student_majors WHERE user_id = $1
+      ),
+      potential_matches AS (
+        SELECT 
+          p.user_id,
+          p.first_name,
+          p.last_name,
+          p.profile_picture_url,
+          p.graduation_year,
+          m.major_name,
+          array_agg(DISTINCT c.course_name) as common_courses,
+          COUNT(DISTINCT sc.course_id) as common_course_count,
+          CASE WHEN sm.major_id = (SELECT major_id FROM user_major) THEN 1 ELSE 0 END as same_major
+        FROM buffspace_main.profile p
+        LEFT JOIN buffspace_main.student_majors sm ON p.user_id = sm.user_id
+        LEFT JOIN buffspace_main.majors m ON sm.major_id = m.major_id
+        LEFT JOIN buffspace_main.student_courses sc ON p.user_id = sc.user_id
+        LEFT JOIN buffspace_main.courses c ON sc.course_id = c.course_id
+        WHERE p.user_id != $1
+        AND (
+          sc.course_id IN (SELECT course_id FROM user_courses)
+          OR sm.major_id = (SELECT major_id FROM user_major)
+        )
+        GROUP BY p.user_id, p.first_name, p.last_name, p.profile_picture_url, 
+                 p.graduation_year, m.major_name, sm.major_id
+      )
+      SELECT *,
+        (common_course_count * 2 + same_major * 3) as match_score
+      FROM potential_matches
+      ORDER BY match_score DESC, common_course_count DESC;
+    `;
+
+    const [userProfile, matches] = await Promise.all([
+      db.one(userProfileQuery, [userId]),
+      db.any(matchesQuery, [userId])
     ]);
 
-    // Define sort options
-    const sortOptions = [
-      { value: "compatibility", label: "Compatibility" },
-      { value: "recent", label: "Recent Activity" },
-      { value: "classes", label: "Common Classes" }
-    ];
-
-    // Render the buffcircle.hbs template with the fetched data
     res.render('pages/buffcircle', {
-      profile,
-      majors,
-      classes,
-      interests,
-      sortOptions,
-      suggestedFriends
+      userProfile,
+      matches,
+      title: 'BuffCircle - Find Your Study Buddies'
     });
+
   } catch (error) {
-    console.error(error);
-    res.redirect('/'); // Redirect to home or handle error appropriately
+    console.error('Error in /buffcircle:', error);
+    res.redirect('/homepage');
   }
 });
 

@@ -1,195 +1,290 @@
+<div class="profile-container">
+    <div class="profile-content">
+        <h1>BuffCircle</h1>
+        <p class="subtitle">Find other students!</p>
 
+        <div class="profile-section">
+            <h3>Your Academic Profile</h3>
+            <ul class="profile-details">
+                <li><strong>Major:</strong> <span>{{userProfile.major_name}}</span></li>
+                <li><strong>Graduation Year:</strong> <span>{{userProfile.graduation_year}}</span></li>
+                <li>
+                    <strong>Your Courses:</strong>
+                    <div class="interests-tags">
+                        {{#each userProfile.enrolled_courses}}
+                            <span class="interest-tag">{{this}}</span>
+                        {{/each}}
+                    </div>
+                </li>
+            </ul>
+        </div>
+
+        <div class="profile-section">
+            <h3>Filter Options</h3>
+            <ul class="profile-details">
+                <li>
+                    <strong>Major Filter:</strong>
+                    <select class="form-control" id="majorFilter">
+                        <option value="">All Majors</option>
+                        <option value="same">Same Major Only</option>
+                    </select>
+                </li>
+                <li>
+                    <strong>Sort By:</strong>
+                    <div class="sort-options">
+                        <a href="#" class="sort-link">Overall Match</a> |
+                        <a href="#" class="sort-link">Common Courses</a>
+                    </div>
+                </li>
+            </ul>
+        </div>
+
+        <div class="profile-section">
+            <h3>Potential Study Buddies</h3>
+            {{#if matches.length}}
+                {{#each matches}}
+                    <div class="match-card">
+                        <div class="match-header">
+                            <img src="{{this.profile_picture_url}}" alt="{{this.first_name}}" class="profile-picture"
+                                 onerror="this.onerror=null;this.src='https://e7.pngegg.com/pngimages/926/34/png-clipart-computer-icons-user-profile-avatar-avatar-face-heroes.png';">
+                            <div class="match-info">
+                                <h4>{{this.first_name}} {{this.last_name}}</h4>
+                                <p class="major">{{this.major_name}}</p>
+                                <div class="match-traits">
+                                    {{#if this.same_major}}
+                                        <span class="trait">Same Major</span>
+                                    {{/if}}
+                                    <span class="trait">{{this.common_course_count}} Common Courses</span>
+                                </div>
+                                {{#if this.common_courses.length}}
+                                    <div class="common-courses">
+                                        <strong>Common courses:</strong>
+                                        <div class="interests-tags">
+                                            {{#each this.common_courses}}
+                                                <span class="interest-tag">{{this}}</span>
+                                            {{/each}}
+                                        </div>
+                                    </div>
+                                {{/if}}
+                                <a href="#" class="btn-primary">Connect</a>
+                            </div>
+                        </div>
+                    </div>
+                {{/each}}
+            {{else}}
+                <div class="no-results">
+                    <p class="bio-text">No matches found. Try adjusting your filters or adding more courses to your profile.</p>
+                </div>
+            {{/if}}
+        </div>
+    </div>
+</div>
 
 <style>
-    /* Inherit base styles from existing page */
-    body {
-        font-family: 'Arial', sans-serif;
-        background-color: #D9E3F0;
-        color: #333;
-        margin: 0;
-        padding: 0;
-        background-image: url('https://aboutboulder.com/wp-content/uploads/2023/08/The-Vibrant-Campus-Life-at-CU-Boulder-scaled.jpeg');
-        background-size: cover;
-        background-position: center;
-        background-attachment: fixed;
-        min-height: 100vh;
-    }
 
-    .homepage-container {
-        background-color: rgba(255, 255, 255, 0.9);
-        border-radius: 15px;
-        box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
-        padding: 30px;
-        width: 65%;
-        max-height: 85vh;
-        box-sizing: border-box;
-        margin: auto;
-        overflow-y: auto;
-        -ms-overflow-style: none;
-        scrollbar-width: none;
-    }
+body {
+    font-family: 'Arial', sans-serif;
+    background-color: #D9E3F0;
+    color: #333;
+    margin: 0;
+    padding: 0;
+    background-image: url('https://aboutboulder.com/wp-content/uploads/2023/08/The-Vibrant-Campus-Life-at-CU-Boulder-scaled.jpeg');
+    background-size: cover;
+    background-position: center;
+    background-attachment: fixed;
+    min-height: 100vh;
+}
 
-    .main-content {
-        display: flex;
-        gap: 30px;
-    }
+.profile-container {
+    background-color: rgba(255, 255, 255, 0.9);
+    border-radius: 15px;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
+    padding: 30px;
+    width: 65%;
+    max-height: 85vh;
+    box-sizing: border-box;
+    margin: auto;
+    overflow-y: auto;
+    -ms-overflow-style: none;
+    scrollbar-width: none;
+}
 
-    .content-left {
-        flex: 1;
-        max-width: 30%;
-    }
+.profile-container::-webkit-scrollbar {
+    display: none;
+}
 
-    .content-right {
-        flex: 2;
-    }
+.profile-content {
+    max-width: 800px;
+    margin: 0 auto;
+}
 
-    /* New styles specific to BuffCircle */
-    .filter-widget {
-        background-color: #f9f9f9;
-        padding: 20px;
-        border-radius: 10px;
-        box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
-    }
+/* Header Styles */
+h1 {
+    text-align: center;
+    margin-bottom: 10px;
+    color: #333;
+}
 
-    .filter-section {
-        margin-bottom: 20px;
-    }
+.subtitle {
+    text-align: center;
+    color: #666;
+    margin-bottom: 30px;
+}
 
-    .filter-section h4 {
-        margin-bottom: 10px;
-        color: #555;
-    }
+/* Profile Section Styles */
+.profile-section {
+    background-color: #f9f9f9;
+    padding: 20px;
+    border-radius: 10px;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+    margin-bottom: 30px;
+}
 
-    .interests-tags {
-        display: flex;
-        flex-wrap: wrap;
-        gap: 8px;
-    }
+.profile-section h3 {
+    margin-top: 0;
+    margin-bottom: 15px;
+    color: #333;
+}
 
-    .interest-tag {
-        background-color: #eee;
-        padding: 5px 10px;
-        border-radius: 15px;
-        font-size: 0.9rem;
-        cursor: pointer;
-    }
+.profile-details {
+    list-style: none;
+    padding: 0;
+    margin: 0;
+}
 
-    .interest-tag.selected {
-        background-color: rgb(215, 183, 27);
-        color: white;
-    }
+.profile-details li {
+    margin-bottom: 15px;
+}
 
-    .search-widget {
-        margin-bottom: 20px;
-    }
+.profile-details strong {
+    display: inline-block;
+    min-width: 120px;
+    color: #555;
+}
 
-    .matches-header {
-        display: flex;
-        justify-content: space-between;
-        align-items: center;
-        margin-bottom: 20px;
-    }
+/* Interest Tags */
+.interests-tags {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+    margin-top: 5px;
+}
 
-    .friends-grid {
-        display: grid;
-        grid-template-columns: repeat(auto-fill, minmax(250px, 1fr));
-        gap: 20px;
-    }
+.interest-tag {
+    background-color: rgb(215, 183, 27);
+    color: white;
+    padding: 5px 10px;
+    border-radius: 15px;
+    font-size: 0.9rem;
+}
 
-    .friend-card {
-        background-color: white;
-        border-radius: 10px;
-        padding: 20px;
-        box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
-        text-align: center;
-    }
+/* Form Controls */
+.form-control {
+    width: 100%;
+    max-width: 200px;
+    padding: 8px;
+    border: 1px solid #ccc;
+    border-radius: 5px;
+    font-size: 0.9rem;
+}
 
-    .friend-avatar {
-        width: 100px;
-        height: 100px;
-        border-radius: 50%;
-        margin-bottom: 15px;
-    }
+/* Sort Options */
+.sort-options {
+    display: inline-block;
+    margin-left: 10px;
+}
 
-    .friend-info h3 {
-        margin: 0 0 5px 0;
-        color: #333;
-    }
+.sort-link {
+    color: rgb(215, 183, 27);
+    text-decoration: none;
+}
 
-    .major {
-        color: #666;
-        margin: 0 0 10px 0;
-    }
+.sort-link:hover {
+    text-decoration: underline;
+}
 
-    .common-traits {
-        display: flex;
-        flex-wrap: wrap;
-        gap: 5px;
-        justify-content: center;
-        margin-bottom: 15px;
-    }
+/* Match Cards */
+.match-card {
+    background-color: #fff;
+    padding: 15px;
+    border-radius: 10px;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+    margin-bottom: 15px;
+}
 
-    .trait {
-        background-color: #f0f0f0;
-        padding: 3px 8px;
-        border-radius: 12px;
-        font-size: 0.8rem;
-    }
+.match-header {
+    display: flex;
+    align-items: flex-start;
+    gap: 15px;
+}
 
-    .btn-primary {
-        background-color: rgb(215, 183, 27);
-        color: white;
-        padding: 8px 20px;
-        border: none;
-        border-radius: 5px;
-        cursor: pointer;
-        font-size: 1rem;
-    }
+.profile-picture {
+    width: 60px;
+    height: 60px;
+    border-radius: 50%;
+    object-fit: cover;
+}
 
-    .btn-secondary {
-        background-color: #cccccc;
-        color: white;
-        padding: 8px 20px;
-        border: none;
-        border-radius: 5px;
-        font-size: 1rem;
-    }
+.match-info {
+    flex: 1;
+}
 
-    .btn-primary:hover {
-        background-color: rgb(195, 163, 7);
-    }
+.match-info h4 {
+    margin: 0 0 5px 0;
+    color: #333;
+}
 
-    .form-control {
-        width: 100%;
-        padding: 10px;
-        border: 1px solid #ccc;
-        border-radius: 5px;
-        font-size: 1rem;
-    }
+.major {
+    color: #666;
+    margin: 0 0 10px 0;
+    font-size: 0.9rem;
+}
 
-    select.form-control {
-        background-color: white;
-    }
+.match-traits {
+    display: flex;
+    gap: 10px;
+    margin-bottom: 10px;
+}
 
-    .sort-options {
-        font-size: 0.9rem;
-    }
+.trait {
+    background-color: #f0f0f0;
+    padding: 3px 8px;
+    border-radius: 12px;
+    font-size: 0.8rem;
+    color: #555;
+}
 
-    .sort-link {
-        color: rgb(215, 183, 27);
-        text-decoration: none;
-    }
+.common-courses {
+    margin: 10px 0;
+}
 
-    .sort-link:hover {
-        text-decoration: underline;
-    }
+/* Button Styles */
+.btn-primary {
+    background-color: rgb(215, 183, 27);
+    color: white;
+    padding: 8px 16px;
+    border: none;
+    border-radius: 5px;
+    cursor: pointer;
+    font-size: 0.9rem;
+    text-decoration: none;
+    display: inline-block;
+    margin-top: 10px;
+}
 
-    .no-results {
-        grid-column: 1 / -1;
-        text-align: center;
-        padding: 40px;
-        background-color: white;
-        border-radius: 10px;
-    }
+.btn-primary:hover {
+    opacity: 0.9;
+}
+
+/* No Results Message */
+.no-results {
+    text-align: center;
+    padding: 20px;
+    color: #666;
+}
+
+.bio-text {
+    margin: 0;
+    line-height: 1.4;
+}
 </style>
-
