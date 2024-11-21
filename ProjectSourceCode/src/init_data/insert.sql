@@ -10,7 +10,9 @@ VALUES
     (7,'fiona','cheez', DEFAULT),
     (8,'george','cheez', DEFAULT),
     (9,'hannah','cheez', DEFAULT),
-    (10,'john','doe', DEFAULT);
+    (10,'john','doe', DEFAULT),
+    (11,'CamTheRam','beef', DEFAULT);
+
 
 INSERT INTO buffspace_main.majors
   (major_id, major_name)
@@ -108,6 +110,11 @@ VALUES
     'Active' -- status
   );
 
+  INSERT INTO buffspace_main.profile (user_id, first_name, last_name, profile_picture_url)
+  VALUES
+    (11, 'CAM', 'the Ram', 'https://mascothalloffame.com/wp-content/uploads/bb-plugin/cache/cam-e1678881220838-circle.jpg');
+
+
 INSERT INTO buffspace_main.friend (user_id_1, user_id_2, user_1_ranking, user_2_ranking)
 VALUES
     (1, 2, 1, 1),
@@ -122,7 +129,8 @@ VALUES
 INSERT INTO buffspace_main.post (user_id, content, image_url, created_at)
 VALUES
     (2, 'oh lawd he comin', 'https://i.redd.it/6uk0m6nclyd21.jpg', '2024-11-07 12:34:56'),
-    (3, 'he do a thonk', 'https://pbs.twimg.com/media/FxBERTuWYAEPqSU.jpg:large', '2024-11-05 08:22:01');
+    (3, 'he do a thonk', 'https://pbs.twimg.com/media/FxBERTuWYAEPqSU.jpg:large', '2024-11-05 08:22:01'),
+    (10, 'hopefully no one notices me', NULL, '2024-09-14 17:30:05');
 
 INSERT INTO buffspace_main.message (from_user_id, to_user_id, content, created_at)
 VALUES
