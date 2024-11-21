@@ -101,7 +101,7 @@ VALUES
   (
     10, -- profile_id
     'I''m a student at CU Boulder!', -- bio
-    'https://i.pinimg.com/736x/c0/74/9b/c0749b7cc401421662ae901ec8f9f660.jpghg&s', 
+    'https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcS7XaUW3hi5dnKpmaEYm5_NoeYeD0XPF0iLFA&s', 
     'John', -- first_name
     'Doe', -- last_name
     2027, -- graduation_year
