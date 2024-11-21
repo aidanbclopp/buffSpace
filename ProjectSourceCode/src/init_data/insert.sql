@@ -9,21 +9,80 @@ VALUES
     (6,'emma','cheez', DEFAULT),
     (7,'fiona','cheez', DEFAULT),
     (8,'george','cheez', DEFAULT),
-    (9,'hannah','cheez', DEFAULT);
+    (9,'hannah','cheez', DEFAULT),
+    (10,'john','doe', DEFAULT);
+
+INSERT INTO buffspace_main.majors
+  (major_id, major_name)
+VALUES
+  (1, 'Computer Science (BA)'),
+  (2, 'Computer Engineering (BS)'),
+  (3, 'Electrical Engineering (BS)'),
+  (4, 'Mechanical Engineering (BS)'),
+  (5, 'Civil Engineering (BS)'),
+  (6, 'Chemical Engineering (BS)'),
+  (7, 'Biomedical Engineering (BS)'),
+  (8, 'Aerospace Engineering (BS)'),
+  (9, 'Industrial Engineering (BS)'),
+  (10, 'Environmental Engineering (BS)');
+
+INSERT INTO buffspace_main.courses
+  (course_id, course_name)
+VALUES
+  (1000, 'Computer Science as a Field of Work and Study'),
+  (1300, 'Introduction to Programming'),
+  (1200, 'Introduction to computational thinking'),
+  (2270, 'Data Structures'),
+  (2400, 'Computer Systems'),
+  (3308, 'Software Development Methods and Tools'),
+  (2824, 'Discrete Structures'),
+  (3104, 'Algorithms'),
+  (3155, 'Principles of Programming Languages'),
+  (3287, 'Design and Analysis of Database systems'),
+  (3753, 'Design and Analysis of Operating systems'),
+  (2820, 'Linear Algebra with Computer Science Applications'),
+  (3202, 'Introduction to Artificial Intelligence'),
+  (3022, 'Introduction to Data Science'),
+  (3002, 'Fundamentals of Human Computer Interaction'),
+  (3010, 'Intensive Programming Workshop'),
+  (4253, 'Data Center Scale Computing'),
+  (4273, 'Network Systems'),
+  (4308, 'Software Engineering Project 1'),
+  (4448, 'Object-Oriented Analysis and Design'),
+  (4502, 'Data Mining');
+
 
 INSERT INTO buffspace_main.profile
-  (user_id, bio, profile_picture_url, first_name, last_name, graduation_year, major, status)
+  (user_id, bio, profile_picture_url, first_name, last_name, graduation_year, status)
 VALUES
   (
     1, -- profile_id
     'I AM CHIP', -- bio
-    'https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcRmIo42UGDaWsRLggK0jDKeUhcwRe39QyC8hg&s', -- profile_picture_url
+    'https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcRmIo42UGDaWsRLggK0jDKeUhcwRe39QyC8hg&s',
     'CHIP', -- first_name
     'BUFFALO', -- last_name
     2024, -- graduation_year
-    'IM CHIP', -- major
     'Active' -- status
   );
+
+INSERT INTO buffspace_main.student_majors
+    (user_id, major_id)
+VALUES
+    (1, 1),  
+    (2, 2),  
+    (3, 1),  
+    (4, 3),
+    (10, 1);
+
+INSERT INTO buffspace_main.student_courses
+    (user_id, course_id)
+VALUES
+    (1, 3308),
+    (1, 2824),
+    (1, 3002),
+    (10, 3308),
+    (10, 2824),
+    (10, 3002);
 
 INSERT INTO buffspace_main.profile (user_id, first_name, last_name, profile_picture_url)
 VALUES
@@ -35,6 +94,19 @@ VALUES
     (7, 'Fiona', 'Shrek', 'https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcTo9tUMVlpZVjqC2ympZR0fOHZJDfmqQev8JTqDcoO6hSqk9kpCczZTDgPH_PYakXPFf6o&usqp=CAU'),
     (8, 'George', 'Georgish', 'https://content.wepik.com/statics/21209543/preview-page6.jpg'),
     (9, 'Hannah', 'Banana', 'https://content.wepik.com/statics/21209540/preview-page3.jpg');
+
+
+INSERT INTO buffspace_main.profile (user_id, bio, profile_picture_url, first_name, last_name, graduation_year, status)
+VALUES
+  (
+    10, -- profile_id
+    'I''m a student at CU Boulder!', -- bio
+    'https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcS7XaUW3hi5dnKpmaEYm5_NoeYeD0XPF0iLFA&s', 
+    'John', -- first_name
+    'Doe', -- last_name
+    2027, -- graduation_year
+    'Active' -- status
+  );
 
 INSERT INTO buffspace_main.friend (user_id_1, user_id_2, user_1_ranking, user_2_ranking)
 VALUES

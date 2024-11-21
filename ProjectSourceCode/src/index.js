@@ -83,6 +83,9 @@ app.use(
   })
 );
 
+// *****************************************************
+// <!-- Section 4 : App Settings -->
+// *****************************************************
 app.get('/', (req, res) => {
   res.render('pages/welcome');
 });
@@ -155,53 +158,6 @@ app.get('/logout', (req, res) => {
 });
 
 
-/*
-//for testing
-app.post('/signup', (req, res) => {
-  const username = req.body.username;
-  const password = req.body.password;
-  const confirmPassword = req.body.confirmPassword;
-
-  console.log(req.body);
-
-  db.tx(async t => {
-    // const hash = await bcrypt.hash(req.body.password, 10);
-
-    const [row] = await t.any(
-      `SELECT * FROM buffspace_main.user WHERE username = $1`, [username]
-      );
-
-    if (row || (password !== confirmPassword)) {
-      throw new Error(`choose another username or password does not match`);
-    }
-
-    // There are either no prerequisites, or all have been taken.
-    await t.none(
-        'INSERT INTO buffspace_main.user(username, password, confirm_password) VALUES ($1, $2, $3);',
-          [username, password, confirmPassword]
-        );
-      })
-        .then(signup => {
-          //console.info(courses);
-          res.status(200).json({
-            username: register.username,
-            password: register.password,
-            confirmPassword: register.confirmPassword,
-            message: 'Registration successful.',
-          });
-        })
-        .catch(err => {
-          console.log(err);
-          return res.status(400).json({
-            username: register.username,
-            password: register.password,
-            confirmPassword: register.confirmPassword,
-            message: 'Passwords do not match.',
-          });
-        });
-});
-*/
-
 // -------------------------------------  ROUTES for login.hbs   ----------------------------------------------
 app.get('/login', (req, res) => {
   res.render('pages/login');
@@ -254,96 +210,114 @@ app.use(auth);
 // *****************************************************
 // starting the server and keeping the connection open to listen for more request
 
-app.get('/profile/:username?', auth, (req, res) => {
+
+const fetchMajors = async () => {
+  const query = 'SELECT * FROM buffspace_main.majors;';
+  return await db.any(query);
+};
+
+app.get('/profile/:username?', auth, async (req, res) => {
   const requestedUsername = req.params.username || req.session.user.username;
   const query = `
-    SELECT p.*, u.username, u.user_id
+    SELECT 
+        p.*,
+        u.username,
+        m.major_name,
+        m.major_id
     FROM buffspace_main.profile p
     JOIN buffspace_main.user u ON p.user_id = u.user_id
+    LEFT JOIN buffspace_main.student_majors sm ON sm.user_id = u.user_id
+    LEFT JOIN buffspace_main.majors m ON sm.major_id = m.major_id
     WHERE u.username = $1
   `;
   const values = [requestedUsername];
 
-  db.one(query, values)
-    .then(profileData => {
-      res.render('pages/profile', {
-        profile: profileData,
-        isOwnProfile: profileData.user_id === req.session.user.user_id
-      });
-    })
-    .catch(err => {
-      console.log(err);
-      res.render('pages/create-profile');
+  try {
+    const profileData = await db.one(query, values);
+    res.render('pages/profile', {
+      profile: profileData,
+      isOwnProfile: profileData.user_id === req.session.user.user_id
     });
+  } catch (err) {
+    console.log(err);
+    res.redirect('/create-profile');
+  }
 });
 
-app.get('/edit-profile', auth, (req, res) => {
+app.get('/edit-profile', auth, async (req, res) => {
   const userId = req.session.user.user_id;
   const query = `
-    SELECT p.*, u.username
+    SELECT 
+      p.*,
+      u.username,
+      sm.major_id
     FROM buffspace_main.profile p
     JOIN buffspace_main.user u ON p.user_id = u.user_id
+    LEFT JOIN buffspace_main.student_majors sm ON sm.user_id = p.user_id
     WHERE p.user_id = $1
   `;
   const values = [userId];
 
-  db.one(query, values)
-    .then(profileData => {
-      res.render('pages/edit-profile', { profile: profileData });
-    })
-    .catch(err => {
-      console.log(err);
-      res.redirect('/profile');
-    });
+  try {
+    const profileData = await db.one(query, values);
+    const majors = await fetchMajors(); // Fetch majors
+    res.render('pages/edit-profile', { 
+      profile: profileData, 
+      majors 
+    }); 
+  } catch (err) {
+    console.log(err);
+    res.redirect('/profile');
+  }
 });
 
 // POST route to handle profile updates
-app.post('/edit-profile', auth, (req, res) => {
+app.post('/edit-profile', auth, async (req, res) => {
   const userId = req.session.user.user_id;
-  const {
-    first_name,
-    last_name,
-    bio,
-    graduation_year,
-    major,
-    status,
-    profile_picture_url
-  } = req.body;
+  const { major_id, ...profileData } = req.body;
 
-  const query = `
-    UPDATE buffspace_main.profile
-    SET
-      first_name = $1,
-      last_name = $2,
-      bio = $3,
-      graduation_year = $4,
-      major = $5,
-      status = $6,
-      profile_picture_url = $7,
-      last_updated = CURRENT_TIMESTAMP
-    WHERE user_id = $8
-    RETURNING *
-  `;
+  try {
+    await db.tx(async t => {
+      // Update profile
+      await t.none(`
+        UPDATE buffspace_main.profile 
+        SET 
+          first_name = $1,
+          last_name = $2,
+          graduation_year = $3,
+          bio = $4,
+          status = $5,
+          profile_picture_url = $6
+        WHERE user_id = $7
+      `, [
+        profileData.first_name, 
+        profileData.last_name, 
+        profileData.graduation_year, 
+        profileData.bio, 
+        profileData.status,
+        profileData.profile_picture_url,
+        userId
+      ]);
 
-  const values = [
-    first_name,
-    last_name,
-    bio,
-    graduation_year,
-    major,
-    status,
-    profile_picture_url,
-    userId
-  ];
-
-  db.one(query, values)
-    .then(() => {
-      res.redirect('/profile');
-    })
-    .catch(err => {
-      console.log(err);
-      res.redirect('/edit-profile');
+      // Update student_majors (first remove old major, then add new one)
+      await t.none('DELETE FROM buffspace_main.student_majors WHERE user_id = $1', [userId]);
+      if (major_id) {
+        await t.none('INSERT INTO buffspace_main.student_majors (user_id, major_id) VALUES ($1, $2)', 
+          [userId, major_id]);
+      }
     });
+
+    res.redirect('/profile');
+  } catch (error) {
+    console.error(error);
+    const majors = await fetchMajors();
+    res.render('pages/edit-profile', {
+      error: true,
+      message: 'Error updating profile',
+      profile: req.body,
+      majors
+    });
+  }
 });
 
 const profile = {
@@ -361,72 +335,64 @@ const profile = {
 };
 
 //SCAFFOLDING
-app.get('/create-profile', auth, (req, res) => {
-  // Check if user already has a profile
+app.get('/create-profile', auth, async (req, res) => {
   const userId = req.session.user.user_id;
   const query = `
     SELECT * FROM buffspace_main.profile
     WHERE user_id = $1
   `;
 
-  db.oneOrNone(query, [userId])
-    .then(profile => {
-      if (profile) {
-        // If profile exists, redirect to profile page
-        res.redirect('/profile');
-      } else {
-        // If no profile exists, render create profile page
-        res.render('pages/create-profile', {
-          user: req.session.user
-        });
-      }
-    })
-    .catch(err => {
-      console.log(err);
-      res.redirect('/');
-    });
+  try {
+    const profile = await db.oneOrNone(query, [userId]);
+    const majors = await fetchMajors(); // Fetch majors
+    if (profile) {
+      res.redirect('/profile');
+    } else {
+      res.render('pages/create-profile', {
+        user: req.session.user,
+        majors // Pass majors to the view
+      });
+    }
+  } catch (err) {
+    console.log(err);
+    res.redirect('/');
+  }
 });
 
 // Handle profile creation
-app.post('/create-profile', auth, (req, res) => {
-  const user_id = req.session.user.user_id;
-  const {
-    bio,
-    profile_picture_url,
-    first_name,
-    last_name,
-    graduation_year,
-    major,
-    status
-  } = req.body;
+app.post('/create-profile', auth, async (req, res) => {
+  const userId = req.session.user.user_id;
+  const { major_id, ...profileData } = req.body;
 
-  const query = `
-    INSERT INTO buffspace_main.profile
-    (user_id, bio, profile_picture_url, first_name, last_name, graduation_year, major, status)
-    VALUES ($1, $2, $3, $4, $5, $6, $7, $8)
-    RETURNING *;`;
+  try {
+    await db.tx(async t => {
+      // Insert profile
+      await t.none(`
+        INSERT INTO buffspace_main.profile
+        (user_id, first_name, last_name, graduation_year, bio, status)
+        VALUES ($1, $2, $3, $4, $5, $6)
+      `, [userId, profileData.first_name, profileData.last_name,
+          profileData.graduation_year, profileData.bio, 
+          profileData.status]);
 
-  const values = [
-    user_id,
-    bio,
-    profile_picture_url,
-    first_name,
-    last_name,
-    graduation_year,
-    major,
-    status
-  ];
-
-  db.one(query, values)
-    .then(profile => {
-      res.redirect('/profile');
-    })
-    .catch(err => {
-      res.render('pages/create-profile', {
-        error: true,
-        message: err.message,
+      // Insert student_majors
+      if (major_id) {
+        await t.none(`
+          INSERT INTO buffspace_main.student_majors
+          (user_id, major_id)
+          VALUES ($1, $2)
+        `, [userId, major_id]);
+      }
     });
-  });
+
+    res.redirect('/profile');
+  } catch (error) {
+    console.error(error);
+    res.render('pages/create-profile', {
+      error: true,
+      message: 'Error creating profile'
+    });
+  }
 });
 
 //SCAFFOLDING END
@@ -500,208 +466,155 @@ app.post('/posts', auth, (req, res) => {
       });
 });
 
-app.get('/friends', async (req, res) => {
-  try {
-    const user = req.session.user;
-    // Fetch friends data from the database
-    const friends = await db.any(`
-      SELECT f.user_id_1, f.user_id_2, pr.first_name, pr.last_name, pr.profile_picture_url, pr.status
-      FROM buffspace_main.friend f, buffspace_main.profile pr
-      WHERE f.user_id_1 = ${user.user_id} AND f.user_id_2 = pr.user_id
-    `);
-    // Render the page and pass the friends data to the Handlebars template
-    res.render('pages/friends', { friends: friends });
-  } catch (error) {
-    console.error('Error fetching friends:', error);
-    res.status(500).send('Internal Server Error');
-  }
-});
-
-//delete friends
-app.post('/friends', auth, (req, res) => {
-  const user_id_1 = req.session.user.user_id;
-  const user_id_2 = req.body.user_id;
-
-  const query = `DELETE FROM buffspace_main.friend WHERE user_id_1 = $1 AND user_id_2 = $2 RETURNING *`;
-
-  const values = [user_id_1, user_id_2];
-
-  db.one(query, values)
-    .then(() => {
-
-      res.redirect('/friends');
-    })
-    .catch(err => {
-      console.log(err);
-      res.redirect('/friends');
-    });
-});
-
-
-// Add these routes to your index.js
-
-// Initial chat page load
-app.get('/chat', auth, async (req, res) => {
+app.get('/buffcircle', auth, async (req, res) => {
   const userId = req.session.user.user_id;
+
   try {
-    // Get user's profile
-    const profile = await db.one(
-        'SELECT * FROM buffspace_main.profile WHERE user_id = $1',
-        [userId]
-    );
+    // Get current user's profile, major, and courses
+    const userProfileQuery = `
+      SELECT 
+        p.*,
+        m.major_id,
+        m.major_name,
+        array_agg(DISTINCT c.course_name) as enrolled_courses
+      FROM buffspace_main.profile p
+      LEFT JOIN buffspace_main.student_majors sm ON p.user_id = sm.user_id
+      LEFT JOIN buffspace_main.majors m ON sm.major_id = m.major_id
+      LEFT JOIN buffspace_main.student_courses sc ON p.user_id = sc.user_id
+      LEFT JOIN buffspace_main.courses c ON sc.course_id = c.course_id
+      WHERE p.user_id = $1
+      GROUP BY p.profile_id, m.major_id, m.major_name;
+    `;
 
-    // Get user's friends list with their latest message
-    const friends = await db.any(`
-            SELECT 
-                p.*, 
-                f.user_id_2,
-                (
-                    SELECT content 
-                    FROM buffspace_main.message 
-                    WHERE (from_user_id = f.user_id_1 AND to_user_id = f.user_id_2)
-                       OR (from_user_id = f.user_id_2 AND to_user_id = f.user_id_1)
-                    ORDER BY created_at DESC 
-                    LIMIT 1
-                ) as last_message
-            FROM buffspace_main.friend f
-            JOIN buffspace_main.profile p ON p.user_id = f.user_id_2
-            WHERE f.user_id_1 = $1
-            ORDER BY (
-                SELECT created_at 
-                FROM buffspace_main.message 
-                WHERE (from_user_id = f.user_id_1 AND to_user_id = f.user_id_2)
-                   OR (from_user_id = f.user_id_2 AND to_user_id = f.user_id_1)
-                ORDER BY created_at DESC 
-                LIMIT 1
-            ) DESC NULLS LAST
-        `, [userId]);
+    // Find potential matches based on shared majors and courses
+    const matchesQuery = `
+      WITH user_courses AS (
+        SELECT course_id FROM buffspace_main.student_courses WHERE user_id = $1
+      ),
+      user_major AS (
+        SELECT major_id FROM buffspace_main.student_majors WHERE user_id = $1
+      ),
+      potential_matches AS (
+        SELECT 
+          p.user_id,
+          p.first_name,
+          p.last_name,
+          p.profile_picture_url,
+          p.graduation_year,
+          m.major_name,
+          array_agg(DISTINCT c.course_name) as common_courses,
+          COUNT(DISTINCT sc.course_id) as common_course_count,
+          CASE WHEN sm.major_id = (SELECT major_id FROM user_major) THEN 1 ELSE 0 END as same_major
+        FROM buffspace_main.profile p
+        LEFT JOIN buffspace_main.student_majors sm ON p.user_id = sm.user_id
+        LEFT JOIN buffspace_main.majors m ON sm.major_id = m.major_id
+        LEFT JOIN buffspace_main.student_courses sc ON p.user_id = sc.user_id
+        LEFT JOIN buffspace_main.courses c ON sc.course_id = c.course_id
+        WHERE p.user_id != $1
+        AND (
+          sc.course_id IN (SELECT course_id FROM user_courses)
+          OR sm.major_id = (SELECT major_id FROM user_major)
+        )
+        GROUP BY p.user_id, p.first_name, p.last_name, p.profile_picture_url, 
+                 p.graduation_year, m.major_name, sm.major_id
+      )
+      SELECT *,
+        (common_course_count * 2 + same_major * 3) as match_score
+      FROM potential_matches
+      ORDER BY match_score DESC, common_course_count DESC;
+    `;
 
-    res.render('pages/chat', {
-      profile,
-      friends,
-      user: req.session.user
+    const [userProfile, matches] = await Promise.all([
+      db.one(userProfileQuery, [userId]),
+      db.any(matchesQuery, [userId])
+    ]);
+
+    res.render('pages/buffcircle', {
+      userProfile,
+      matches,
+      title: 'BuffCircle - Find Your Study Buddies'
     });
+
   } catch (error) {
-    console.error('Error loading chat page:', error);
-    res.status(500).send('Error loading chat page');
+    console.error('Error in /buffcircle:', error);
+    res.redirect('/homepage');
   }
 });
 
-// Chat page with specific friend selected
-app.get('/chat/:friendId', auth, async (req, res) => {
+app.get('/courses-profile', auth, async (req, res) => {
   const userId = req.session.user.user_id;
+
   try {
-    // Get user's profile
-    const profile = await db.one(
-        'SELECT * FROM buffspace_main.profile WHERE user_id = $1',
-        [userId]
-    );
+    // Get user's current courses
+    const userCoursesQuery = `
+      SELECT c.* 
+      FROM buffspace_main.courses c
+      JOIN buffspace_main.student_courses sc ON c.course_id = sc.course_id
+      WHERE sc.user_id = $1
+      ORDER BY c.course_id;
+    `;
 
-    // Get user's friends list
-    const friends = await db.any(`
-            SELECT 
-                p.*, 
-                f.user_id_2,
-                (
-                    SELECT content 
-                    FROM buffspace_main.message 
-                    WHERE (from_user_id = f.user_id_1 AND to_user_id = f.user_id_2)
-                       OR (from_user_id = f.user_id_2 AND to_user_id = f.user_id_1)
-                    ORDER BY created_at DESC 
-                    LIMIT 1
-                ) as last_message
-            FROM buffspace_main.friend f
-            JOIN buffspace_main.profile p ON p.user_id = f.user_id_2
-            WHERE f.user_id_1 = $1
-            ORDER BY (
-                SELECT created_at 
-                FROM buffspace_main.message 
-                WHERE (from_user_id = f.user_id_1 AND to_user_id = f.user_id_2)
-                   OR (from_user_id = f.user_id_2 AND to_user_id = f.user_id_1)
-                ORDER BY created_at DESC 
-                LIMIT 1
-            ) DESC NULLS LAST
-        `, [userId]);
+    // Get available courses (not yet added by user)
+    const availableCoursesQuery = `
+      SELECT c.*
+      FROM buffspace_main.courses c
+      WHERE c.course_id NOT IN (
+        SELECT course_id 
+        FROM buffspace_main.student_courses 
+        WHERE user_id = $1
+      )
+      ORDER BY c.course_id;
+    `;
 
-    // Get selected friend's info and messages
-    const selectedFriend = await db.one(`
-            SELECT p.*, u.user_id
-            FROM buffspace_main.profile p
-            JOIN buffspace_main.user u ON p.user_id = u.user_id
-            WHERE p.user_id = $1
-        `, [req.params.friendId]);
+    const [userCourses, availableCourses] = await Promise.all([
+      db.any(userCoursesQuery, [userId]),
+      db.any(availableCoursesQuery, [userId])
+    ]);
 
-    const messages = await db.any(`
-            SELECT 
-                m.*,
-                EXTRACT(EPOCH FROM m.created_at) * 1000 as timestamp
-            FROM buffspace_main.message m
-            WHERE (from_user_id = $1 AND to_user_id = $2)
-               OR (from_user_id = $2 AND to_user_id = $1)
-            ORDER BY m.created_at ASC
-        `, [userId, req.params.friendId]);
-
-    res.render('pages/chat', {
-      profile,
-      friends,
-      selectedFriend,
-      messages,
-      user: req.session.user
+    res.render('pages/courses-profile', {
+      userCourses,
+      availableCourses
     });
   } catch (error) {
-    console.error('Error loading chat page:', error);
-    res.status(500).send('Error loading chat page');
+    console.error(error);
+    res.redirect('/profile');
   }
 });
 
-// API endpoint for loading chat messages
-app.get('/api/chat/:friendId', auth, async (req, res) => {
+// Add a course
+app.post('/add-course', auth, async (req, res) => {
   const userId = req.session.user.user_id;
-  try {
-    const selectedFriend = await db.one(`
-            SELECT p.*, u.user_id
-            FROM buffspace_main.profile p
-            JOIN buffspace_main.user u ON p.user_id = u.user_id
-            WHERE p.user_id = $1
-        `, [req.params.friendId]);
-
-    const messages = await db.any(`
-            SELECT 
-                m.*,
-                EXTRACT(EPOCH FROM m.created_at) * 1000 as timestamp
-            FROM buffspace_main.message m
-            WHERE (from_user_id = $1 AND to_user_id = $2)
-               OR (from_user_id = $2 AND to_user_id = $1)
-            ORDER BY m.created_at ASC
-        `, [userId, req.params.friendId]);
-
-    res.json({
-      selectedFriend,
-      messages,
-      user: req.session.user
-    });
-  } catch (error) {
-    console.error('Error loading chat:', error);
-    res.status(500).json({ error: 'Error loading chat' });
-  }
-});
-
-// API endpoint for sending messages
-app.post('/api/messages', auth, async (req, res) => {
-  const fromUserId = req.session.user.user_id;
-  const { to_user_id, content } = req.body;
+  const courseId = req.body.course_id;
 
   try {
     await db.none(
-        'INSERT INTO buffspace_main.message (from_user_id, to_user_id, content) VALUES ($1, $2, $3)',
-        [fromUserId, to_user_id, content]
+      'INSERT INTO buffspace_main.student_courses (user_id, course_id) VALUES ($1, $2)',
+      [userId, courseId]
     );
-    res.json({ success: true });
+    res.redirect('/courses-profile');
   } catch (error) {
-    console.error('Error sending message:', error);
-    res.status(500).json({ error: 'Error sending message' });
+    console.error(error);
+    res.redirect('/courses-profile');
   }
 });
+
+// Remove a course
+app.post('/remove-course', auth, async (req, res) => {
+  const userId = req.session.user.user_id;
+  const courseId = req.body.course_id;
+
+  try {
+    await db.none(
+      'DELETE FROM buffspace_main.student_courses WHERE user_id = $1 AND course_id = $2',
+      [userId, courseId]
+    );
+    res.redirect('/courses-profile');
+  } catch (error) {
+    console.error(error);
+    res.redirect('/courses-profile');
+  }
+});
+
 
 module.exports = app.listen(3000);
 console.log('Server is listening on port 3000');
