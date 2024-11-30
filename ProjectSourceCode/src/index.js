@@ -219,7 +219,7 @@ const fetchMajors = async () => {
 app.get('/profile/:username?', auth, async (req, res) => {
   const requestedUsername = req.params.username || req.session.user.username;
   const query = `
-    SELECT 
+    SELECT
         p.*,
         u.username,
         m.major_name,
@@ -247,7 +247,7 @@ app.get('/profile/:username?', auth, async (req, res) => {
 app.get('/edit-profile', auth, async (req, res) => {
   const userId = req.session.user.user_id;
   const query = `
-    SELECT 
+    SELECT
       p.*,
       u.username,
       sm.major_id
@@ -261,10 +261,10 @@ app.get('/edit-profile', auth, async (req, res) => {
   try {
     const profileData = await db.one(query, values);
     const majors = await fetchMajors(); // Fetch majors
-    res.render('pages/edit-profile', { 
-      profile: profileData, 
-      majors 
-    }); 
+    res.render('pages/edit-profile', {
+      profile: profileData,
+      majors
+    });
   } catch (err) {
     console.log(err);
     res.redirect('/profile');
@@ -280,8 +280,8 @@ app.post('/edit-profile', auth, async (req, res) => {
     await db.tx(async t => {
       // Update profile
       await t.none(`
-        UPDATE buffspace_main.profile 
-        SET 
+        UPDATE buffspace_main.profile
+        SET
           first_name = $1,
           last_name = $2,
           graduation_year = $3,
@@ -290,10 +290,10 @@ app.post('/edit-profile', auth, async (req, res) => {
           profile_picture_url = $6
         WHERE user_id = $7
       `, [
-        profileData.first_name, 
-        profileData.last_name, 
-        profileData.graduation_year, 
-        profileData.bio, 
+        profileData.first_name,
+        profileData.last_name,
+        profileData.graduation_year,
+        profileData.bio,
         profileData.status,
         profileData.profile_picture_url,
         userId
@@ -302,7 +302,7 @@ app.post('/edit-profile', auth, async (req, res) => {
       // Update student_majors (first remove old major, then add new one)
       await t.none('DELETE FROM buffspace_main.student_majors WHERE user_id = $1', [userId]);
       if (major_id) {
-        await t.none('INSERT INTO buffspace_main.student_majors (user_id, major_id) VALUES ($1, $2)', 
+        await t.none('INSERT INTO buffspace_main.student_majors (user_id, major_id) VALUES ($1, $2)',
           [userId, major_id]);
       }
     });
@@ -372,7 +372,7 @@ app.post('/create-profile', auth, async (req, res) => {
         (user_id, first_name, last_name, graduation_year, bio, status)
         VALUES ($1, $2, $3, $4, $5, $6)
       `, [userId, profileData.first_name, profileData.last_name,
-          profileData.graduation_year, profileData.bio, 
+          profileData.graduation_year, profileData.bio,
           profileData.status]);
 
       // Insert student_majors
@@ -414,8 +414,8 @@ const buildPostQuery = (filter, userId) => {
     case 'friends':
       baseQuery += `
         WHERE po.user_id IN (
-          SELECT user_id_2 
-          FROM buffspace_main.friend 
+          SELECT user_id_2
+          FROM buffspace_main.friend
           WHERE user_id_1 = ${userId}
         ) OR po.user_id = ${userId}
       `;
@@ -427,8 +427,8 @@ const buildPostQuery = (filter, userId) => {
       // Default to friends' posts if no valid filter
       baseQuery += `
         WHERE po.user_id IN (
-          SELECT user_id_2 
-          FROM buffspace_main.friend 
+          SELECT user_id_2
+          FROM buffspace_main.friend
           WHERE user_id_1 = ${userId}
         ) OR po.user_id = ${userId}
       `;
@@ -477,8 +477,8 @@ app.get('/homepage', async (req, res) => {
 
     // Get messages
     const selectMessages = `
-      SELECT m.from_user_id, content, 
-             to_char(created_at, 'HH12:MI AM MM/DD/YYYY') AS created_at, 
+      SELECT m.from_user_id, content,
+             to_char(created_at, 'HH12:MI AM MM/DD/YYYY') AS created_at,
              first_name, last_name, profile_picture_url
       FROM buffspace_main.message m, buffspace_main.profile pr
       WHERE m.to_user_id = ${user.user_id} AND m.from_user_id = pr.user_id
@@ -527,7 +527,7 @@ app.get('/buffcircle', auth, async (req, res) => {
   try {
     // Get current user's profile, major, and courses
     const userProfileQuery = `
-      SELECT 
+      SELECT
         p.*,
         m.major_id,
         m.major_name,
@@ -550,7 +550,7 @@ app.get('/buffcircle', auth, async (req, res) => {
         SELECT major_id FROM buffspace_main.student_majors WHERE user_id = $1
       ),
       potential_matches AS (
-        SELECT 
+        SELECT
           p.user_id,
           p.first_name,
           p.last_name,
@@ -570,7 +570,7 @@ app.get('/buffcircle', auth, async (req, res) => {
           sc.course_id IN (SELECT course_id FROM user_courses)
           OR sm.major_id = (SELECT major_id FROM user_major)
         )
-        GROUP BY p.user_id, p.first_name, p.last_name, p.profile_picture_url, 
+        GROUP BY p.user_id, p.first_name, p.last_name, p.profile_picture_url,
                  p.graduation_year, m.major_name, sm.major_id
       )
       SELECT *,
@@ -602,7 +602,7 @@ app.get('/courses-profile', auth, async (req, res) => {
   try {
     // Get user's current courses
     const userCoursesQuery = `
-      SELECT c.* 
+      SELECT c.*
       FROM buffspace_main.courses c
       JOIN buffspace_main.student_courses sc ON c.course_id = sc.course_id
       WHERE sc.user_id = $1
@@ -614,8 +614,8 @@ app.get('/courses-profile', auth, async (req, res) => {
       SELECT c.*
       FROM buffspace_main.courses c
       WHERE c.course_id NOT IN (
-        SELECT course_id 
-        FROM buffspace_main.student_courses 
+        SELECT course_id
+        FROM buffspace_main.student_courses
         WHERE user_id = $1
       )
       ORDER BY c.course_id;
@@ -670,12 +670,31 @@ app.post('/remove-course', auth, async (req, res) => {
   }
 });
 
+/*
 app.get('/friends', async (req, res) => {
   try {
     const user = req.session.user;
     // Fetch friends data from the database
     const friends = await db.any(`
-      SELECT f.user_id_1, f.user_id_2, pr.first_name, pr.last_name, pr.profile_picture_url, pr.status
+      SELECT f.user_id_1, f.user_id_2, pr.user_id, pr.first_name, pr.last_name, pr.profile_picture_url, pr.status
+      FROM buffspace_main.friend f, buffspace_main.profile pr
+      WHERE f.user_id_1 = ${user.user_id} AND f.user_id_2 = pr.user_id
+    `);
+    // Render the page and pass the friends data to the Handlebars template
+    res.render('pages/friends', { friends: friends });
+  } catch (error) {
+    console.error('Error fetching friends:', error);
+    res.status(500).send('Internal Server Error');
+  }
+});
+*/
+
+app.get('/friends', async (req, res) => {
+  try {
+    const user = req.session.user;
+    // Fetch friends data from the database
+    const friends = await db.any(`
+      SELECT f.user_id_1, f.user_id_2, pr.user_id, pr.first_name, pr.last_name, pr.profile_picture_url, pr.status
       FROM buffspace_main.friend f, buffspace_main.profile pr
       WHERE f.user_id_1 = ${user.user_id} AND f.user_id_2 = pr.user_id
     `);
@@ -687,8 +706,9 @@ app.get('/friends', async (req, res) => {
   }
 });
 
+
 //delete friends
-app.post('/friends', auth, (req, res) => {
+app.post('/friends/delete_friend', auth, (req, res) => {
   const user_id_1 = req.session.user.user_id;
   const user_id_2 = req.body.user_id;
 
@@ -698,7 +718,6 @@ app.post('/friends', auth, (req, res) => {
 
   db.one(query, values)
     .then(() => {
-
       res.redirect('/friends');
     })
     .catch(err => {
@@ -722,26 +741,26 @@ app.get('/chat', auth, async (req, res) => {
 
     // Get user's friends list with their latest message
     const friends = await db.any(`
-            SELECT 
-                p.*, 
+            SELECT
+                p.*,
                 f.user_id_2,
                 (
-                    SELECT content 
-                    FROM buffspace_main.message 
+                    SELECT content
+                    FROM buffspace_main.message
                     WHERE (from_user_id = f.user_id_1 AND to_user_id = f.user_id_2)
                        OR (from_user_id = f.user_id_2 AND to_user_id = f.user_id_1)
-                    ORDER BY created_at DESC 
+                    ORDER BY created_at DESC
                     LIMIT 1
                 ) as last_message
             FROM buffspace_main.friend f
             JOIN buffspace_main.profile p ON p.user_id = f.user_id_2
             WHERE f.user_id_1 = $1
             ORDER BY (
-                SELECT created_at 
-                FROM buffspace_main.message 
+                SELECT created_at
+                FROM buffspace_main.message
                 WHERE (from_user_id = f.user_id_1 AND to_user_id = f.user_id_2)
                    OR (from_user_id = f.user_id_2 AND to_user_id = f.user_id_1)
-                ORDER BY created_at DESC 
+                ORDER BY created_at DESC
                 LIMIT 1
             ) DESC NULLS LAST
         `, [userId]);
@@ -769,26 +788,26 @@ app.get('/chat/:friendId', auth, async (req, res) => {
 
     // Get user's friends list
     const friends = await db.any(`
-            SELECT 
-                p.*, 
+            SELECT
+                p.*,
                 f.user_id_2,
                 (
-                    SELECT content 
-                    FROM buffspace_main.message 
+                    SELECT content
+                    FROM buffspace_main.message
                     WHERE (from_user_id = f.user_id_1 AND to_user_id = f.user_id_2)
                        OR (from_user_id = f.user_id_2 AND to_user_id = f.user_id_1)
-                    ORDER BY created_at DESC 
+                    ORDER BY created_at DESC
                     LIMIT 1
                 ) as last_message
             FROM buffspace_main.friend f
             JOIN buffspace_main.profile p ON p.user_id = f.user_id_2
             WHERE f.user_id_1 = $1
             ORDER BY (
-                SELECT created_at 
-                FROM buffspace_main.message 
+                SELECT created_at
+                FROM buffspace_main.message
                 WHERE (from_user_id = f.user_id_1 AND to_user_id = f.user_id_2)
                    OR (from_user_id = f.user_id_2 AND to_user_id = f.user_id_1)
-                ORDER BY created_at DESC 
+                ORDER BY created_at DESC
                 LIMIT 1
             ) DESC NULLS LAST
         `, [userId]);
@@ -802,7 +821,7 @@ app.get('/chat/:friendId', auth, async (req, res) => {
         `, [req.params.friendId]);
 
     const messages = await db.any(`
-            SELECT 
+            SELECT
                 m.*,
                 EXTRACT(EPOCH FROM m.created_at) * 1000 as timestamp
             FROM buffspace_main.message m
@@ -836,7 +855,7 @@ app.get('/api/chat/:friendId', auth, async (req, res) => {
         `, [req.params.friendId]);
 
     const messages = await db.any(`
-            SELECT 
+            SELECT
                 m.*,
                 EXTRACT(EPOCH FROM m.created_at) * 1000 as timestamp
             FROM buffspace_main.message m
