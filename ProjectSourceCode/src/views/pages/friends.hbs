@@ -33,7 +33,11 @@
               </div>
               <div class="friend-actions">
                 <button class="btn-primary">Message</button>
-                <button class="btn-primary">Unfriend</button>
+
+                <form action="/friends/delete_friend" method="POST">
+                  <input type="hidden" name="user_id" value={{user_id}}>
+                  <button class="btn-primary">Unfriend</button>
+                </form>
               </div>
             </div>
           {{/each}}
