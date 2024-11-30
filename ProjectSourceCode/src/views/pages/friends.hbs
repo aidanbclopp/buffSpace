@@ -32,7 +32,7 @@
                 </div>
               </div>
               <div class="friend-actions">
-                <button class="btn-primary">Message</button>
+                <button type="button" class="btn-primary" onClick="location.href='/chat/{{user_id}}'">Message</button>
 
                 <form action="/friends/delete_friend" method="POST">
                   <input type="hidden" name="user_id" value={{user_id}}>
