@@ -105,7 +105,7 @@ const user = {
 
 app.get('/signup', (req, res) => {
   const signupSuccess = req.query.signupSuccess === 'true'; // Check if the signup was successful
-  res.render('pages/signup', { signupSuccess });
+  res.render('pages/login', { signupSuccess });
 });
 
 app.post('/signup', (req, res) => {
@@ -134,7 +134,7 @@ app.post('/signup', (req, res) => {
   })
     .then(() => {
       // Redirect to the signup page with a success query parameter
-      res.redirect('/signup?signupSuccess=true');
+      res.redirect('/login?signupSuccess=true');
     })
     .catch(err => {
       console.log(err);
