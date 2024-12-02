@@ -1,6 +1,3 @@
--- 01_insert.sql
--- This file is intentionally left blank for the lab.
-
 INSERT INTO buffspace_main.user
   (user_id, username, password, last_login)
 VALUES

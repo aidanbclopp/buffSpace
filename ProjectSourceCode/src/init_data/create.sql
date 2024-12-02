@@ -1,11 +1,5 @@
 CREATE SCHEMA buffspace_main;
 
-CREATE TABLE IF NOT EXISTS users (
-    username VARCHAR(50) PRIMARY KEY,
-    password CHAR(60) NOT NULL
-);
-
-
 create table buffspace_main.user
 (
     --
@@ -22,7 +16,7 @@ create table buffspace_main.user
 
 CREATE TABLE buffspace_main.profile_song
 (
-    song_id           INTEGER PRIMARY KEY,
+    song_id           SERIAL PRIMARY KEY,
     song_title        VARCHAR(255) NOT NULL,
     song_album        VARCHAR(255),
     song_artist       VARCHAR(255),
