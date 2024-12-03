@@ -677,7 +677,7 @@ app.get('/friends', async (req, res) => {
     const friends = await db.any(`
       SELECT f.user_id_1, f.user_id_2, pr.user_id, pr.first_name, pr.last_name, pr.profile_picture_url, pr.status
       FROM buffspace_main.friend f, buffspace_main.profile pr
-      WHERE f.user_id_1 = ${user.user_id} AND f.user_id_2 = pr.user_id
+      WHERE f.user_id_1 = ${user.user_id} AND f.user_id_2 = pr.user_id OR f.user_id_2 = ${user.user_id} AND f.user_id_1 = pr.user_id
     `);
     // Render the page and pass the friends data to the Handlebars template
     res.render('pages/friends', { friends: friends });
