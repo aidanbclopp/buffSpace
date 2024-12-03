@@ -1,7 +1,7 @@
 <div class="profile-container">
     <div class="profile-content">
         <h1>{{profile.first_name}} {{profile.last_name}}'s Profile</h1>
-        
+
         <div class="profile-header">
             <img src="{{profile.profile_picture_url}}" alt="Profile Picture" class="profile-picture">
         </div>
@@ -20,11 +20,44 @@
                 <li><strong>Major:</strong> <span>{{profile.major_name}}</span></li>
                 <li><strong>Graduation Year:</strong> <span>{{profile.graduation_year}}</span></li>
                 <li><strong>Status:</strong> <span>{{profile.status}}</span></li>
+
+                <div class="form-group">
+                    <li><strong>Profile Song: </strong> <span>{{profile.song}}</span></li>
+                    <form action="/upload-song" method="POST" enctype="multipart/form-data" id="songUploadForm">
+                        <div class="upload-container">
+                            <input type="file"
+                                   id="profile_song"
+                                   name="mp3"
+                                   class="form-control"
+                                   accept="audio/mp3"
+                                   onchange="toggleUploadButton(this)">
+                            <button type="submit"
+                                    id="uploadButton"
+                                    style="display: none;"
+                                    class="upload-btn">
+                                Upload Song
+                            </button>
+                        </div>
+                        <div style="text-align: center;">
+                            <small class="form-text">Upload an MP3 file that will play on your profile.</small>
+                        </div>
+                    </form>
+
+                </div>
+
+                {{#if profile.song_url}}
+                    <div class="profile-audio" style="display: flex; justify-content: center; align-items: center; text-align: center;">
+                        <audio controls>
+                            <source src="{{profile.song_url}}" type="audio/mp3">
+                            Your browser does not support the audio element.
+                        </audio>
+                    </div>
+                {{/if}}
             </ul>
         </div>
 
         {{#if isOwnProfile}}
-            <a href="/edit-profile" class="btn-primary">Edit Profile</a>
+        <a href="/edit-profile" class="btn-primary">Edit Profile</a>
         {{/if}}
     </div>
 </div>
@@ -32,164 +65,186 @@
 
 
 <style>
-/* General Body Styling */
-body {
-    font-family: 'Arial', sans-serif;
-    background-color: #D9E3F0;
-    color: #333;
-    margin: 0;
-    padding: 0;
-    background-image: url('https://aboutboulder.com/wp-content/uploads/2023/08/The-Vibrant-Campus-Life-at-CU-Boulder-scaled.jpeg');
-    background-size: cover;
-    background-position: center;
-    background-attachment: fixed;
-    min-height: 100vh;
-}
-
-/* Profile Container */
-.profile-container {
-    display: flex;
-    justify-content: center;
-    align-items: center;
-    padding: 40px 20px;
-    min-height: calc(100vh - 80px);
-}
-
-/* Profile Content */
-.profile-content {
-    background-color: rgba(255, 255, 255, 0.9);
-    border-radius: 15px;
-    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
-    padding: 30px;
-    width: 100%;
-    max-width: 600px;
-    box-sizing: border-box;
-    margin: auto;
-    transition: transform 0.3s ease-in-out;
-}
-
-.profile-content:hover {
-    transform: scale(1.02);
-}
-
-/* Header Styling */
-h1 {
-    color: #CFB87C;
-    font-size: 2.5rem;
-    font-weight: bold;
-    text-align: center;
-    margin-bottom: 30px;
-    text-shadow: 1px 1px 4px rgba(0, 0, 0, 0.1);
-}
-
-h3 {
-    color: #000000;
-    font-size: 1.5rem;
-    margin-top: 25px;
-    margin-bottom: 15px;
-    border-bottom: 2px solid #B5D0E7;
-    padding-bottom: 8px;
-}
-
-/* Profile Picture */
-.profile-header {
-    text-align: center;
-    margin-bottom: 30px;
-}
-
-.profile-picture {
-    width: 150px;
-    height: 150px;
-    border-radius: 50%;
-    border: 4px solid #B5D0E7;
-    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
-    object-fit: cover;
-}
-
-/* Bio Section */
-.bio-text {
-    font-size: 1.1rem;
-    line-height: 1.6;
-    color: #555;
-    margin-bottom: 25px;
-}
-
-/* Profile Details */
-.profile-details {
-    list-style: none;
-    padding: 0;
-    margin: 0;
-}
-
-.profile-details li {
-    padding: 12px 0;
-    border-bottom: 1px solid #eee;
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-}
-
-.profile-details li:last-child {
-    border-bottom: none;
-}
-
-.profile-details strong {
-    color: #000000;
-    min-width: 140px;
-    display: inline-block;
-}
-
-.profile-details span {
-    color: #666;
-}
-
-/* Button Styling */
-.btn-primary {
-    display: block;
-    width: 100%;
-    background-color: #565A5C;
-    border: none;
-    padding: 14px;
-    color: white;
-    font-size: 1.2rem;
-    border-radius: 5px;
-    cursor: pointer;
-    transition: background-color 0.3s ease-in-out;
-    font-weight: bold;
-    text-align: center;
-    text-decoration: none;
-    margin-top: 30px;
-}
-
-.btn-primary:hover {
-    background-color: #CFB87C;
-    text-decoration: none;
-    color: white;
-}
-
-/* Responsive Design */
-@media (max-width: 768px) {
-    .profile-content {
-        padding: 20px;
-        margin: 20px;
+    /* General Body Styling */
+    body {
+        font-family: 'Arial', sans-serif;
+        background-color: #D9E3F0;
+        color: #333;
+        margin: 0;
+        padding: 0;
+        background-image: url('https://aboutboulder.com/wp-content/uploads/2023/08/The-Vibrant-Campus-Life-at-CU-Boulder-scaled.jpeg');
+        background-size: cover;
+        background-position: center;
+        background-attachment: fixed;
+        min-height: 100vh;
     }
 
+    /* Profile Container */
+    .profile-container {
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        padding: 40px 20px;
+        min-height: calc(100vh - 80px);
+    }
+
+    /* Profile Content */
+    .profile-content {
+        background-color: rgba(255, 255, 255, 0.9);
+        border-radius: 15px;
+        box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
+        padding: 30px;
+        width: 100%;
+        max-width: 600px;
+        box-sizing: border-box;
+        margin: auto;
+        transition: transform 0.3s ease-in-out;
+    }
+
+    .profile-content:hover {
+        transform: scale(1.02);
+    }
+
+    /* Header Styling */
     h1 {
-        font-size: 2rem;
+        color: #CFB87C;
+        font-size: 2.5rem;
+        font-weight: bold;
+        text-align: center;
+        margin-bottom: 30px;
+        text-shadow: 1px 1px 4px rgba(0, 0, 0, 0.1);
+    }
+
+    h3 {
+        color: #000000;
+        font-size: 1.5rem;
+        margin-top: 25px;
+        margin-bottom: 15px;
+        border-bottom: 2px solid #B5D0E7;
+        padding-bottom: 8px;
+    }
+
+    /* Profile Picture */
+    .profile-header {
+        text-align: center;
+        margin-bottom: 30px;
     }
 
     .profile-picture {
-        width: 120px;
-        height: 120px;
+        width: 150px;
+        height: 150px;
+        border-radius: 50%;
+        border: 4px solid #B5D0E7;
+        box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+        object-fit: cover;
+    }
+
+    /* Bio Section */
+    .bio-text {
+        font-size: 1.1rem;
+        line-height: 1.6;
+        color: #555;
+        margin-bottom: 25px;
+    }
+
+    /* Profile Details */
+    .profile-details {
+        list-style: none;
+        padding: 0;
+        margin: 0;
     }
 
     .profile-details li {
-        flex-direction: column;
-        align-items: flex-start;
+        padding: 12px 0;
+        border-bottom: 1px solid #eee;
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+    }
+
+    .profile-details li:last-child {
+        border-bottom: none;
     }
 
     .profile-details strong {
-        margin-bottom: 5px;
+        color: #000000;
+        min-width: 140px;
+        display: inline-block;
     }
-}
+
+    .profile-details span {
+        color: #666;
+    }
+
+    /* Button Styling */
+    .btn-primary {
+        display: block;
+        width: 100%;
+        background-color: #565A5C;
+        border: none;
+        padding: 14px;
+        color: white;
+        font-size: 1.2rem;
+        border-radius: 5px;
+        cursor: pointer;
+        transition: background-color 0.3s ease-in-out;
+        font-weight: bold;
+        text-align: center;
+        text-decoration: none;
+        margin-top: 30px;
+    }
+
+    .btn-primary:hover {
+        background-color: #CFB87C;
+        text-decoration: none;
+        color: white;
+    }
+
+    /* Responsive Design */
+    @media (max-width: 768px) {
+        .profile-content {
+            padding: 20px;
+            margin: 20px;
+        }
+
+        h1 {
+            font-size: 2rem;
+        }
+
+        .profile-picture {
+            width: 120px;
+            height: 120px;
+        }
+
+        .profile-details li {
+            flex-direction: column;
+            align-items: flex-start;
+        }
+
+        .profile-details strong {
+            margin-bottom: 5px;
+        }
+    }
 </style>
+
+<script>
+    function toggleUploadButton(input) {
+        const uploadButton = document.getElementById('uploadButton');
+        if (input.files && input.files[0]) {
+            // Show button with a fade-in effect
+            uploadButton.style.display = 'block';
+            uploadButton.style.opacity = 0;
+            setTimeout(() => {
+                uploadButton.style.transition = 'opacity 0.3s ease';
+                uploadButton.style.opacity = 1;
+            }, 10);
+        } else {
+            // Hide button with a fade-out effect
+            uploadButton.style.transition = 'opacity 0.3s ease';
+            uploadButton.style.opacity = 0;
+            setTimeout(() => {
+                uploadButton.style.display = 'none';
+            }, 300);
+        }
+    }
+</script>

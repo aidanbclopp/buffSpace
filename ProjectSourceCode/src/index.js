@@ -2,7 +2,6 @@
 // <!-- Section 1 : Import Dependencies -->
 // *****************************************************
 
-
 const express = require('express'); // To build an application server or API
 const app = express();
 const handlebars = require('express-handlebars');
@@ -13,12 +12,13 @@ const bodyParser = require('body-parser');
 const session = require('express-session'); // To set the session object. To store or access session data, use the `req.session`, which is (generally) serialized as JSON by the store.
 const bcrypt = require('bcryptjs'); //  To hash passwords
 const axios = require('axios'); // To make HTTP requests from our server. We'll learn more about it in Part C.
+const multer = require('multer');
+const fs = require('fs');
 
 
 // *****************************************************
 // <!-- Section 2 : Connect to DB -->
 // *****************************************************
-
 
 // create `ExpressHandlebars` instance and configure the layouts and partials dir.
 const hbs = handlebars.create({
@@ -65,7 +65,7 @@ app.engine('hbs', hbs.engine);
 app.set('view engine', 'hbs');
 app.set('views', path.join(__dirname, 'views'));
 app.use(bodyParser.json()); // specify the usage of JSON for parsing request body.
-
+app.use('/uploads', express.static(path.join(__dirname, 'uploads')));
 
 // initialize session variables
 app.use(
@@ -96,11 +96,11 @@ app.get('/register', (req, res) => {
 });
 
 const user = {
-    user_id: undefined,
-    username: undefined,
-    password: undefined,
-    created_at: undefined,
-    last_login: undefined,
+  user_id: undefined,
+  username: undefined,
+  password: undefined,
+  created_at: undefined,
+  last_login: undefined,
 };
 
 app.get('/signup', (req, res) => {
@@ -191,7 +191,7 @@ app.post('/login', (req, res) => {
 
 
 app.get('/welcome', (req, res) => {
-  res.json({status: 'success', message: 'Welcome!'});
+  res.json({ status: 'success', message: 'Welcome!' });
 });
 
 // Authentication middleware.
@@ -210,11 +210,87 @@ app.use(auth);
 // *****************************************************
 // starting the server and keeping the connection open to listen for more request
 
+const uploadDir = path.join(__dirname, 'uploads');
+if (!fs.existsSync(uploadDir)) {
+  fs.mkdirSync(uploadDir, { recursive: true });
+}
+
+// Configure Multer
+const storage = multer.diskStorage({
+  destination: (req, file, cb) => {
+    cb(null, uploadDir);
+  },
+  filename: (req, file, cb) => {
+    cb(null, Date.now() + path.extname(file.originalname));
+  }
+});
+
+// Add file filter to only allow mp3 files
+const fileFilter = (req, file, cb) => {
+  if (file.mimetype === 'audio/mpeg' || file.mimetype === 'audio/mp3') {
+    cb(null, true);
+  } else {
+    cb(new Error('Invalid file type. Only MP3 files are allowed.'), false);
+  }
+};
+
+const upload = multer({
+  storage: storage,
+  fileFilter: fileFilter,
+  limits: {
+    fileSize: 5 * 1024 * 1024 // 5MB limit
+  }
+});
+
+// Modified upload route
+app.post('/upload-song', upload.single('mp3'), async (req, res) => {
+  if (!req.file) {
+    return res.status(400).send('No file uploaded or invalid file type');
+  }
+
+  const filePath = req.file.path;
+  const userId = req.session.user.user_id;
+
+  try {
+    const result = await db.one(
+        `INSERT INTO buffspace_main.profile_song (song_title, mp3_file_url)
+         VALUES ($1, $2)
+           RETURNING song_id`,
+        [
+          req.file.originalname.replace('.mp3', ''),
+          filePath
+        ]
+    );
+
+    const newSongId = result.song_id;
+
+    // Update the user's profile with the new song ID
+    await db.none(
+        `UPDATE buffspace_main.profile
+         SET song_id = $1
+         WHERE user_id = $2`,
+        [newSongId, userId]
+    );
+
+    res.redirect('/profile');
+  } catch (error) {
+    console.error('Error uploading song:', error);
+    // Delete the uploaded file if database operation fails
+    fs.unlink(filePath, (err) => {
+      if (err) console.error('Error deleting file:', err);
+    });
+    res.status(500).send('Error uploading song: ' + error.message);
+  }
+});
+
+
+
 
 const fetchMajors = async () => {
   const query = 'SELECT * FROM buffspace_main.majors;';
   return await db.any(query);
 };
+
 
 app.get('/profile/:username?', auth, async (req, res) => {
   const requestedUsername = req.params.username || req.session.user.username;
@@ -223,25 +299,40 @@ app.get('/profile/:username?', auth, async (req, res) => {
         p.*,
         u.username,
         m.major_name,
-        m.major_id
+        m.major_id,
+      ps.mp3_file_url,
+      ps.song_title,
+      CASE
+        WHEN ps.mp3_file_url IS NOT NULL
+          THEN REPLACE(ps.mp3_file_url, '/home/node/app/src', '')
+        END as song_url
     FROM buffspace_main.profile p
     JOIN buffspace_main.user u ON p.user_id = u.user_id
+    LEFT JOIN buffspace_main.profile_song ps ON p.song_id = ps.song_id
     LEFT JOIN buffspace_main.student_majors sm ON sm.user_id = u.user_id
     LEFT JOIN buffspace_main.majors m ON sm.major_id = m.major_id
     WHERE u.username = $1
   `;
   const values = [requestedUsername];
 
-  try {
-    const profileData = await db.one(query, values);
-    res.render('pages/profile', {
-      profile: profileData,
-      isOwnProfile: profileData.user_id === req.session.user.user_id
-    });
-  } catch (err) {
-    console.log(err);
-    res.redirect('/create-profile');
-  }
+  db.one(query, values)
+      .then(profileData => {
+        // Format the profile data to include song information
+        const profile = {
+          ...profileData,
+          song: profileData.song_title, // Add song title for display
+          song_url: profileData.song_url // Add processed URL for audio player
+        };
+
+        res.render('pages/profile', {
+          profile: profile,
+          isOwnProfile: profileData.user_id === req.session.user.user_id
+        });
+      })
+      .catch(err => {
+        console.log(err);
+        res.render('pages/create-profile');
+      });
 });
 
 app.get('/edit-profile', auth, async (req, res) => {
@@ -319,6 +410,7 @@ app.post('/edit-profile', auth, async (req, res) => {
     });
   }
 });
+
 
 const profile = {
   profile_id: undefined,
@@ -512,13 +604,13 @@ app.post('/posts', auth, (req, res) => {
   const values = [userId, content];
 
   db.query(query, values)
-      .then(result => {
-        res.redirect('/homepage');
-      })
-      .catch(err => {
-        console.log(err);
-        res.redirect('/homepage');
-      });
+    .then(result => {
+      res.redirect('/homepage');
+    })
+    .catch(err => {
+      console.log(err);
+      res.redirect('/homepage');
+    });
 });
 
 app.get('/buffcircle', auth, async (req, res) => {
