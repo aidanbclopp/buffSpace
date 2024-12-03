@@ -101,57 +101,6 @@
             text-align: center;
         }
 
-        /* Modal Styling */
-        .modal {
-            display: none;
-            position: fixed;
-            z-index: 1000;
-            left: 0;
-            top: 0;
-            width: 100%;
-            height: 100%;
-            overflow: auto;
-            background-color: rgba(0, 0, 0, 0.5);
-        }
-
-        .modal-content {
-            background-color: #fff;
-            margin: 15% auto;
-            padding: 20px;
-            border-radius: 10px;
-            width: 80%;
-            max-width: 400px;
-            text-align: center;
-            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
-            animation: fadeIn 0.5s;
-        }
-
-        .modal-content h2 {
-            color: #007bff;
-        }
-
-        .close {
-            color: #aaa;
-            float: right;
-            font-size: 28px;
-            font-weight: bold;
-            cursor: pointer;
-        }
-
-        .close:hover, .close:focus {
-            color: black;
-            text-decoration: none;
-        }
-
-        @keyframes fadeIn {
-            from {
-                opacity: 0;
-            }
-            to {
-                opacity: 1;
-            }
-        }
-
         @media (max-width: 600px) {
             .signup-form {
                 padding: 20px;
@@ -197,41 +146,12 @@
         </div>
 
         <button type="submit" class="btn-primary">Sign Up</button>
+            <section id="auth-links" style="margin-top: 20px; text-align: center;">
+                <a>Have an account? </a>
+                <a href="/login">Login Page</a>
+            </section>
     </form>
 </div>
-
-<!-- Modal for Chip Buffalo Notification -->
-<div id="chipModal" class="modal">
-    <div class="modal-content">
-        <span class="close">&times;</span>
-        <h2>Welcome to BuffSpace!</h2>
-        <p>Your first friend is <strong>Chip Buffalo</strong>. Say hi!</p>
-        <button id="closeModalButton" class="btn-primary">Got it!</button>
-    </div>
-</div>
-
-<script>
-    // Show the modal if the signup was successful
-    const urlParams = new URLSearchParams(window.location.search);
-    if (urlParams.get('signupSuccess') === 'true') {
-        document.getElementById('chipModal').style.display = 'block';
-    }
-
-    // Close modal functionality
-    document.querySelector('.close').onclick = function () {
-        document.getElementById('chipModal').style.display = 'none';
-    };
-
-    document.getElementById('closeModalButton').onclick = function () {
-        document.getElementById('chipModal').style.display = 'none';
-    };
-
-    window.onclick = function (event) {
-        if (event.target === document.getElementById('chipModal')) {
-            document.getElementById('chipModal').style.display = 'none';
-        }
-    };
-</script>
 
 </body>
 </html>

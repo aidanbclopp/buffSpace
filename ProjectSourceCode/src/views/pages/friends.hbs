@@ -1,26 +1,8 @@
 <div class="friends-container">
   <div class="main-content">
-    <div class="content-left">
-      <div class="sidebar-element">{{> profile-widget profile=profile}}</div>
-      <div class="sidebar-element">{{> buffcircle-widget friends=topFriends}}</div>
-      <div class="sidebar-element">{{> chat-widget messages=recentMessages}}</div>
-    </div>
     <div class="content-right">
       <div class="friends-list-widget">
         <h2>Friends</h2>
-        <div class="customize-links">
-          <div class="filter-links">
-            <span>Show me:</span>
-            <a href="#" class="filter-link">All Friends</a> |
-            <a href="#" class="filter-link">Just Me</a> |
-            <a href="#" class="filter-link">BuffSpace</a>
-          </div>
-          <div class="sort-links">
-            <span>Sort by:</span>
-            <a href="#" class="sort-link">Date</a> |
-            <a href="#" class="sort-link">Random</a>
-          </div>
-        </div>
         <div class="friends-list">
           {{#each friends}}
             <div class="friend-card">
@@ -32,8 +14,12 @@
                 </div>
               </div>
               <div class="friend-actions">
-                <button class="btn-primary">Message</button>
-                <button class="btn-primary">Unfriend</button>
+                <button type="button" class="btn-primary" onClick="location.href='/chat/{{user_id}}'">Message</button>
+
+                <form action="/friends/delete_friend" method="POST">
+                  <input type="hidden" name="user_id" value={{user_id}}>
+                  <button class="btn-primary">Unfriend</button>
+                </form>
               </div>
             </div>
           {{/each}}

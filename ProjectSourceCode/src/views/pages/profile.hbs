@@ -15,8 +15,10 @@
             <h3>Details</h3>
             <ul class="profile-details">
                 <li><strong>Username:</strong> <span>{{profile.username}}</span></li>
+                <li><strong>First Name:</strong> <span>{{profile.first_name}}</span></li>
+                <li><strong>Last Name:</strong> <span>{{profile.last_name}}</span></li>
+                <li><strong>Major:</strong> <span>{{profile.major_name}}</span></li>
                 <li><strong>Graduation Year:</strong> <span>{{profile.graduation_year}}</span></li>
-                <li><strong>Major:</strong> <span>{{profile.major}}</span></li>
                 <li><strong>Status:</strong> <span>{{profile.status}}</span></li>
 
                 <div class="form-group">
@@ -51,9 +53,6 @@
                         </audio>
                     </div>
                 {{/if}}
-
-
-                <li><strong>Last Updated:</strong> <span>{{profile.last_updated}}</span></li>
             </ul>
         </div>
 

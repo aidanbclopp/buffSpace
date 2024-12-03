@@ -29,14 +29,22 @@
             <div class="customize-links">
                 <div class="filter-links">
                     <span>Show me:</span>
-                    <a href="#" class="filter-link">All Friends</a> |
-                    <a href="#" class="filter-link">Just Me</a> |
-                    <a href="#" class="filter-link">BuffSpace</a>
+                    <a href="/homepage?filter=friends" class="filter-link {{#if (eq activeFilter 'friends')}}active{{/if}}">
+                        All Friends
+                    </a> |
+                    <a href="/homepage?filter=just-me" class="filter-link {{#if (eq activeFilter 'just-me')}}active{{/if}}">
+                        Just Me
+                    </a> |
+                    <a href="/homepage?filter=all" class="filter-link {{#if (eq activeFilter 'all')}}active{{/if}}">
+                        All
+                    </a>
                 </div>
                 <div class="sort-links">
                     <span>Sort by:</span>
-                    <a href="#" class="sort-link">Date</a> |
-                    <a href="#" class="sort-link">Random</a>
+                    <a href="/homepage?filter={{activeFilter}}&sort=date"
+                    class="sort-link {{#if (eq activeSort 'date')}}active{{/if}}">Date</a> |
+                    <a href="/homepage?filter={{activeFilter}}&sort=random"
+                    class="sort-link {{#if (eq activeSort 'random')}}active{{/if}}">Random</a>
                 </div>
             </div>
 
@@ -226,6 +234,11 @@
     .filter-link, .sort-link {
         color: rgb(215, 183, 27);
         text-decoration: none;
+    }
+
+    .filter-link.active, .sort-link.active {
+        font-weight: bold;
+        text-decoration: underline;
     }
 
     .filter-link:hover, .sort-link:hover {
