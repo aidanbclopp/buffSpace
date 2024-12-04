@@ -1,17 +1,17 @@
 INSERT INTO buffspace_main.user
   (user_id, username, password, last_login)
 VALUES
-    (1,'orange','abcdefg','2024-06-24 12:34:56'),
-    (2,'alice','cheez', DEFAULT),
-    (3,'bob','cheez', DEFAULT),
-    (4,'charlie','cheez', DEFAULT),
-    (5,'david','cheez', DEFAULT),
-    (6,'emma','cheez', DEFAULT),
-    (7,'fiona','cheez', DEFAULT),
-    (8,'george','cheez', DEFAULT),
-    (9,'hannah','cheez', DEFAULT),
-    (10,'john','doe', DEFAULT),
-    (11,'CamTheRam','beef', DEFAULT);
+    (1,'ChipTheBuffalo','master_password','2024-06-24 12:34:56'),
+    (2,'alice','master_password', DEFAULT),
+    (3,'bob','master_password', DEFAULT),
+    (4,'charlie','master_password', DEFAULT),
+    (5,'david','master_password', DEFAULT),
+    (6,'emma','master_password', DEFAULT),
+    (7,'fiona','master_password', DEFAULT),
+    (8,'george','master_password', DEFAULT),
+    (9,'hannah','master_password', DEFAULT),
+    (10,'john','master_password', DEFAULT),
+    (11,'CamTheRam','master_password', DEFAULT);
 
 
 INSERT INTO buffspace_main.majors
@@ -59,13 +59,23 @@ INSERT INTO buffspace_main.profile
 VALUES
   (
     1, -- profile_id
-    'I AM CHIP', -- bio
-    'https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcRmIo42UGDaWsRLggK0jDKeUhcwRe39QyC8hg&s',
-    'CHIP', -- first_name
-    'BUFFALO', -- last_name
-    2024, -- graduation_year
+    'University of Colorado #1 Fan', -- bio
+    'https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcQ0BJ4xefjotlm_0FV13yDu8ry8ycqwvy9U3A&s',
+    'Chip', -- first_name
+    'Buffalo', -- last_name
+    2028, -- graduation_year
     'Active' -- status
-  );
+  ),
+  (2, 'I love computer science!', 'https://img.freepik.com/premium-vector/avatar-minimalist-line-art-icon-logo-symbol-black-color-only_925376-257641.jpg', 'Alice', 'Smith', 2029, 'Active'),
+  (3, 'I am a software engineer.', 'https://img.freepik.com/premium-vector/boy-minimalist-line-art-icon-logo-symbol-black-color-only_925376-259120.jpg', 'Bob', 'Johnson', 2030, 'Active'),
+  (4, 'I am a data scientist.', 'https://content.wepik.com/statics/20269019/preview-page3.jpg', 'Charlie', 'Dylanson', 2029, 'Active'),
+  (5, 'I am a machine learning engineer.', 'https://content.wepik.com/statics/20269016/preview-page1.jpg', 'David', 'Davidson', 2028, 'Active'),
+  (6, 'I am a cybersecurity expert.', 'https://content.wepik.com/statics/20269016/preview-page1.jpg', 'Emma', 'Lopez', 2029, 'Active'),
+  (7, 'I am a web developer.', 'https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcTo9tUMVlpZVjqC2ympZR0fOHZJDfmqQev8JTqDcoO6hSqk9kpCczZTDgPH_PYakXPFf6o&usqp=CAU', 'Fiona', 'Shrek', 2030, 'Active'),
+  (8, 'I am a network administrator.', 'https://content.wepik.com/statics/21209543/preview-page6.jpg', 'George', 'Georgish', 2028, 'Active'),
+  (9, 'I am a database administrator.', 'https://content.wepik.com/statics/21209540/preview-page3.jpg', 'Hannah', 'Banana', 2029, 'Active'),
+  (10, 'I''m a student at CU Boulder!', 'https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcS7XaUW3hi5dnKpmaEYm5_NoeYeD0XPF0iLFA&s', 'John', 'Doe', 2027, 'Active'),
+  (11, 'I am a mascot.', 'https://mascothalloffame.com/wp-content/uploads/bb-plugin/cache/cam-e1678881220838-circle.jpg', 'CAM', 'the Ram', 2028, 'Active');
 
 INSERT INTO buffspace_main.student_majors
     (user_id, major_id)
@@ -74,6 +84,11 @@ VALUES
     (2, 2),  
     (3, 1),  
     (4, 3),
+    (5, 2),
+    (6, 3),
+    (7, 1),
+    (8, 2),
+    (9, 3),
     (10, 1);
 
 INSERT INTO buffspace_main.student_courses
@@ -85,35 +100,6 @@ VALUES
     (10, 3308),
     (10, 2824),
     (10, 3002);
-
-INSERT INTO buffspace_main.profile (user_id, first_name, last_name, profile_picture_url)
-VALUES
-    (2, 'Alice', 'Smith', 'https://img.freepik.com/premium-vector/avatar-minimalist-line-art-icon-logo-symbol-black-color-only_925376-257641.jpg'),
-    (3, 'Bob', 'Johnson', 'https://img.freepik.com/premium-vector/boy-minimalist-line-art-icon-logo-symbol-black-color-only_925376-259120.jpg'),
-    (4, 'Charlie', 'Dylanson', 'https://content.wepik.com/statics/20269019/preview-page3.jpg'),
-    (5, 'David', 'Davidson', 'https://content.wepik.com/statics/20269016/preview-page1.jpg'),
-    (6, 'Emma', 'Lopez', 'https://content.wepik.com/statics/20269016/preview-page1.jpg'),
-    (7, 'Fiona', 'Shrek', 'https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcTo9tUMVlpZVjqC2ympZR0fOHZJDfmqQev8JTqDcoO6hSqk9kpCczZTDgPH_PYakXPFf6o&usqp=CAU'),
-    (8, 'George', 'Georgish', 'https://content.wepik.com/statics/21209543/preview-page6.jpg'),
-    (9, 'Hannah', 'Banana', 'https://content.wepik.com/statics/21209540/preview-page3.jpg');
-
-
-INSERT INTO buffspace_main.profile (user_id, bio, profile_picture_url, first_name, last_name, graduation_year, status)
-VALUES
-  (
-    10, -- profile_id
-    'I''m a student at CU Boulder!', -- bio
-    'https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcS7XaUW3hi5dnKpmaEYm5_NoeYeD0XPF0iLFA&s', 
-    'John', -- first_name
-    'Doe', -- last_name
-    2027, -- graduation_year
-    'Active' -- status
-  );
-
-  INSERT INTO buffspace_main.profile (user_id, first_name, last_name, profile_picture_url)
-  VALUES
-    (11, 'CAM', 'the Ram', 'https://mascothalloffame.com/wp-content/uploads/bb-plugin/cache/cam-e1678881220838-circle.jpg');
-
 
 INSERT INTO buffspace_main.friend (user_id_1, user_id_2, user_1_ranking, user_2_ranking)
 VALUES

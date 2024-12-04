@@ -1,5 +1,5 @@
 <div class="chat-widget">
-    <h2>Recent Messages</h2>
+    <h2>Recent Message</h2>
     <div class="chat-messages">
         {{#each messages}}
             <a href="/chat/{{this.from_user_id}}" class="chat-message-link">
@@ -17,6 +17,8 @@
                     </div>
                 </div>
             </a>
+        {{else}}
+            <p>No recent messages.</p>
         {{/each}}
     </div>
 </div>
