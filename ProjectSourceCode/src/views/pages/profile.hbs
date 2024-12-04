@@ -21,12 +21,13 @@
                 <li><strong>Graduation Year:</strong> <span>{{profile.graduation_year}}</span></li>
                 <li><strong>Status:</strong> <span>{{profile.status}}</span></li>
                 {{#if profile.song_url}}
-                    <div class="profile-audio" style="display: flex; justify-content: center; align-items: center; text-align: center;">
+                    <li>
+                        <strong>Song:</strong> <span>{{profile.song}}</span>
                         <audio controls>
                             <source src="{{profile.song_url}}" type="audio/mp3">
                             Your browser does not support the audio element.
                         </audio>
-                    </div>
+                    </li>
                 {{/if}}
             </ul>
         </div>
