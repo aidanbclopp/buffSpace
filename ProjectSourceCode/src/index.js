@@ -108,42 +108,45 @@ app.get('/signup', (req, res) => {
   res.render('pages/login', { signupSuccess });
 });
 
-app.post('/signup', (req, res) => {
+app.post('/signup', async (req, res) => {
   const username = req.body.username;
   const password = req.body.password;
   const confirmPassword = req.body.confirmPassword;
 
-  console.log(req.body);
-
-  db.tx(async t => {
-    // Check if the username already exists
-    const [row] = await t.any(
-      `SELECT * FROM buffspace_main.user WHERE username = $1`, [username]
-    );
-
-    // Validate passwords and existing username
-    if (row || (password !== confirmPassword)) {
-      throw new Error(`Choose another username or ensure passwords match.`);
+  try {
+    // Validate passwords match before hashing
+    if (password !== confirmPassword) {
+      throw new Error('Passwords do not match.');
     }
 
-    // Insert new user into the database
-    await t.none(
-      'INSERT INTO buffspace_main.user(username, password) VALUES ($1, $2);',
-      [username, password]
-    );
-  })
-    .then(() => {
-      // Redirect to the signup page with a success query parameter
-      res.redirect('/login?signupSuccess=true');
-    })
-    .catch(err => {
-      console.log(err);
-      // Render the signup page with an error message
-      res.render('pages/signup', {
-        error: true,
-        message: err.message, // Pass error message to the template
-      });
+    // Hash password with bcrypt (10 rounds of salt)
+    const hashedPassword = await bcrypt.hash(password, 10);
+
+    await db.tx(async t => {
+      // Check if username already exists
+      const [row] = await t.any(
+        `SELECT * FROM buffspace_main.user WHERE username = $1`, [username]
+      );
+
+      if (row) {
+        throw new Error('Username already exists.');
+      }
+
+      // Insert new user with hashed password
+      await t.none(
+        'INSERT INTO buffspace_main.user(username, password) VALUES ($1, $2);',
+        [username, hashedPassword]
+      );
     });
+
+    res.redirect('/login?signupSuccess=true');
+  } catch (err) {
+    console.log(err);
+    res.render('pages/signup', {
+      error: true,
+      message: err.message,
+    });
+  }
 });
 
 
@@ -164,29 +167,32 @@ app.get('/login', (req, res) => {
 });
 
 // Login submission
-app.post('/login', (req, res) => {
+app.post('/login', async (req, res) => {
   const username = req.body.username;
   const password = req.body.password;
 
-  db.one('SELECT * FROM buffspace_main.user WHERE username = $1 LIMIT 1', [username])
-    .then(user => {
-      if (user.password === password) {
-        req.session.user = {
-          user_id: user.user_id,
-          username: user.username,
-          created_at: user.created_at,
-          last_login: user.last_login,
-        };
-        req.session.save();
-        res.redirect('/homepage');
-      } else {
-        res.render('pages/login', { error: true, message: 'Incorrect Password/Username.' });
-      }
-    })
-    .catch(err => {
-      console.error(err);
-      res.render('pages/login', { error: true, message: 'Username not found.' });
-    });
+  try {
+    const user = await db.one('SELECT * FROM buffspace_main.user WHERE username = $1 LIMIT 1', [username]);
+    
+    // Compare the provided password with the stored hash
+    const passwordMatch = await bcrypt.compare(password, user.password);
+    
+    if (passwordMatch) {
+      req.session.user = {
+        user_id: user.user_id,
+        username: user.username,
+        created_at: user.created_at,
+        last_login: user.last_login,
+      };
+      req.session.save();
+      res.redirect('/homepage');
+    } else {
+      res.render('pages/login', { error: true, message: 'Incorrect Password/Username.' });
+    }
+  } catch (err) {
+    console.error(err);
+    res.render('pages/login', { error: true, message: 'Username not found.' });
+  }
 });
 
 
@@ -847,7 +853,6 @@ app.post('/friends/delete_friend', auth, (req, res) => {
 });
 
 
-// Add these routes to your index.js
 
 // Initial chat page load
 app.get('/chat', auth, async (req, res) => {
