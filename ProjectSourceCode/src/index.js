@@ -682,8 +682,20 @@ app.get('/buffcircle', auth, async (req, res) => {
           p.profile_picture_url,
           p.graduation_year,
           m.major_name,
-          array_agg(DISTINCT c.course_name) as common_courses,
-          COUNT(DISTINCT sc.course_id) as common_course_count,
+          array_agg(DISTINCT 
+            CASE 
+              WHEN sc.course_id IN (SELECT course_id FROM user_courses) 
+              THEN c.course_name 
+              ELSE NULL 
+            END
+          ) FILTER (WHERE c.course_name IS NOT NULL) as common_courses,
+          COUNT(DISTINCT 
+            CASE 
+              WHEN sc.course_id IN (SELECT course_id FROM user_courses) 
+              THEN sc.course_id 
+              ELSE NULL 
+            END
+          ) as common_course_count,
           CASE WHEN sm.major_id = (SELECT major_id FROM user_major) THEN 1 ELSE 0 END as same_major
         FROM buffspace_main.profile p
         LEFT JOIN buffspace_main.student_majors sm ON p.user_id = sm.user_id
@@ -693,7 +705,11 @@ app.get('/buffcircle', auth, async (req, res) => {
         WHERE p.user_id != $1
         AND p.user_id NOT IN (SELECT friend_id FROM existing_friends)
         AND (
-          sc.course_id IN (SELECT course_id FROM user_courses)
+          EXISTS (
+            SELECT 1 FROM buffspace_main.student_courses sc2 
+            WHERE sc2.user_id = p.user_id 
+            AND sc2.course_id IN (SELECT course_id FROM user_courses)
+          )
           OR sm.major_id = (SELECT major_id FROM user_major)
         )
         GROUP BY p.user_id, p.first_name, p.last_name, p.profile_picture_url, p.graduation_year, m.major_name, sm.major_id
@@ -851,8 +867,6 @@ app.post('/friends/delete_friend', auth, (req, res) => {
       res.redirect('/friends');
     });
 });
-
-
 
 // Initial chat page load
 app.get('/chat', auth, async (req, res) => {
@@ -1016,7 +1030,6 @@ app.post('/api/messages', auth, async (req, res) => {
     res.status(500).json({ error: 'Error sending message' });
   }
 });
-
 
 module.exports = app.listen(3000);
 console.log('Server is listening on port 3000');
