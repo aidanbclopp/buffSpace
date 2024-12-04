@@ -1,15 +1,10 @@
 <div class="profile-widget">
     <div class="profile-header">
-        <img src="{{profile.profile_picture_url}}" class="profile-avatar" onerror="this.onerror=null;
-        this
-        .src='https://e7' +
-         '.pngegg' +
-         '.com/pngimages/926/34/png-clipart-computer-icons-user-profile-avatar-avatar-face-heroes.png';">
+        <img src="{{profile.profile_picture_url}}" class="profile-avatar" onerror="this.onerror=null; this.src='https://e7.pngegg.com/pngimages/926/34/png-clipart-computer-icons-user-profile-avatar-avatar-face-heroes.png';">
         <div class="profile-details">
-            <h1>{{profile.first_name}} {{profile.last_name}}</h1>
+            <h2>{{profile.first_name}} {{profile.last_name}}</h2>
             <h6>{{profile.major}} {{profile.graduation_year}}</h6>
             <p>{{profile.bio}}</p>
-            <p></p>
         </div>
     </div>
     {{> clock-widget }}
