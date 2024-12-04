@@ -11,12 +11,16 @@ const pgp = require('pg-promise')(); // To connect to the Postgres DB from the n
 const bodyParser = require('body-parser');
 const session = require('express-session'); // To set the session object. To store or access session data, use the `req.session`, which is (generally) serialized as JSON by the store.
 const bcrypt = require('bcryptjs'); //  To hash passwords
+const axios = require('axios'); // To make HTTP requests from our server. We'll learn more about it in Part C.
 const multer = require('multer');
 const fs = require('fs');
 
+
 // *****************************************************
-// <!-- Section 2 : Database Configuration -->
+// <!-- Section 2 : Connect to DB -->
 // *****************************************************
+
+// create `ExpressHandlebars` instance and configure the layouts and partials dir.
 const hbs = handlebars.create({
   extname: 'hbs',
   layoutsDir: __dirname + '/views/layouts',
@@ -36,7 +40,9 @@ const dbConfig = {
   user: process.env.POSTGRES_USER, // the user account to connect with
   password: process.env.POSTGRES_PASSWORD, // the password of the user account
 };
+
 const db = pgp(dbConfig);
+
 
 // test your database
 db.connect()
@@ -48,10 +54,10 @@ db.connect()
     console.log('ERROR:', error.message || error);
   });
 
-// *****************************************************
-// <!-- Section 3 : Middleware Settings -->
-// *****************************************************
 
+// *****************************************************
+// <!-- Section 3 : App Settings -->
+// *****************************************************
 // Register `hbs` as our view engine using its bound `engine()` function.
 app.engine('hbs', hbs.engine);
 app.set('view engine', 'hbs');
@@ -76,10 +82,17 @@ app.use(
 );
 
 // *****************************************************
-// <!-- Section 3.2 : Objects + Helper Functions -->
+// <!-- Section 4 : App Settings -->
 // *****************************************************
+app.get('/', (req, res) => {
+  res.render('pages/welcome');
+});
 
-// User object
+
+app.get('/register', (req, res) => {
+  res.render('pages/signup');
+});
+
 const user = {
   user_id: undefined,
   username: undefined,
@@ -88,125 +101,11 @@ const user = {
   last_login: undefined,
 };
 
-// Profile object
-const profile = {
-  profile_id: undefined,
-  user_id: undefined,
-  bio: undefined,
-  profile_picture_url: undefined,
-  first_name: undefined,
-  last_name: undefined,
-  graduation_year: undefined,
-  major: undefined,
-  song_id: undefined,
-  status: undefined,
-  last_updated: undefined,
-};
-
-// Helper function to fetch majors from the database
-const fetchMajors = async () => {
-  const query = 'SELECT * FROM buffspace_main.majors;';
-  return await db.any(query);
-};
-
-// Configure upload directory
-const uploadDir = path.join(__dirname, 'uploads');
-if (!fs.existsSync(uploadDir)) {
-  fs.mkdirSync(uploadDir, { recursive: true });
-}
-
-// Configure Multer
-const storage = multer.diskStorage({
-  destination: (req, file, cb) => {
-    cb(null, uploadDir);
-  },
-  filename: (req, file, cb) => {
-    cb(null, Date.now() + path.extname(file.originalname));
-  }
+app.get('/signup', (req, res) => {
+  const signupSuccess = req.query.signupSuccess === 'true'; // Check if the signup was successful
+  res.render('pages/login', { signupSuccess });
 });
 
-// Add file filter to only allow mp3 files
-const fileFilter = (req, file, cb) => {
-  if (file.mimetype === 'audio/mpeg' || file.mimetype === 'audio/mp3') {
-    cb(null, true);
-  } else {
-    cb(new Error('Invalid file type. Only MP3 files are allowed.'), false);
-  }
-};
-
-// Configure Multer for song uploads
-const uploadSong = multer({
-  storage: storage,
-  fileFilter: fileFilter,
-  limits: {
-    fileSize: 5 * 1024 * 1024 // 5MB limit
-  }
-});
-
-// Helper function to build the post query based on filter
-const buildPostQuery = (filter, userId) => {
-  let baseQuery = `
-    SELECT po.user_id, content, image_url,
-           to_char(created_at, 'HH12:MI AM MM/DD/YYYY') AS created_at,
-           first_name, last_name, profile_picture_url
-    FROM buffspace_main.post po
-           JOIN buffspace_main.profile pr ON po.user_id = pr.user_id
-  `;
-
-  switch (filter) {
-    case 'just-me':
-      baseQuery += ` WHERE po.user_id = ${userId}`;
-      break;
-    case 'friends':
-      baseQuery += `
-        WHERE po.user_id IN (
-          SELECT user_id_2
-          FROM buffspace_main.friend
-          WHERE user_id_1 = ${userId}
-        ) OR po.user_id = ${userId}
-      `;
-      break;
-    case 'all':
-      // No WHERE clause needed - show all posts
-      break;
-    default:
-      // Default to friends' posts if no valid filter
-      baseQuery += `
-        WHERE po.user_id IN (
-          SELECT user_id_2
-          FROM buffspace_main.friend
-          WHERE user_id_1 = ${userId}
-        ) OR po.user_id = ${userId}
-      `;
-  }
-
-  return baseQuery + ' ORDER BY po.created_at DESC';
-};
-
-// *****************************************************
-// <!-- Section 4 : Basic Routes -->
-// *****************************************************
-
-// Welcome Page
-app.get('/', (req, res) => {
-  res.render('pages/welcome');
-});
-
-// Welcome API
-app.get('/welcome', (req, res) => {
-  res.json({ status: 'success', message: 'Welcome!' });
-});
-
-// *****************************************************
-// <!-- Section 5 : Authentication Routes -->
-// *****************************************************
-
-// Register Page
-app.get('/register', (req, res) => {
-  res.render('pages/signup');
-});
-
-// Signup Submission
 app.post('/signup', async (req, res) => {
   const username = req.body.username;
   const password = req.body.password;
@@ -248,18 +147,24 @@ app.post('/signup', async (req, res) => {
   }
 });
 
-// Sign up Checker
-app.get('/signup', (req, res) => {
-  const signupSuccess = req.query.signupSuccess === 'true'; // Check if the signup was successful
-  res.render('pages/login', { signupSuccess });
+
+
+app.get('/logout', (req, res) => {
+  req.session.destroy(err => {
+    if (err) {
+      return res.redirect('/');
+    }
+    res.render('pages/logout', { message: "Logged Out Successfully" });
+  });
 });
 
-// Login Page
+
+// -------------------------------------  ROUTES for login.hbs   ----------------------------------------------
 app.get('/login', (req, res) => {
   res.render('pages/login');
 });
 
-// Login Submission
+// Login submission
 app.post('/login', async (req, res) => {
   const username = req.body.username;
   const password = req.body.password;
@@ -293,12 +198,12 @@ app.post('/login', async (req, res) => {
   }
 });
 
-// Logout Route
-app.get('/logout', (req, res) => {
-  req.session.destroy();
-  res.redirect('/login');
+
+app.get('/welcome', (req, res) => {
+  res.json({ status: 'success', message: 'Welcome!' });
 });
 
+// Authentication middleware.
 const auth = (req, res, next) => {
   if (!req.session.user) {
     return res.redirect('/login');
@@ -308,11 +213,91 @@ const auth = (req, res, next) => {
 
 app.use(auth);
 
-// *****************************************************
-// <!-- Section 6 : Profile Routes -->
-// *****************************************************
 
-// Profile Page
+// *****************************************************
+// <!-- Section 5 : Start Server-->
+// *****************************************************
+// starting the server and keeping the connection open to listen for more request
+
+const uploadDir = path.join(__dirname, 'uploads');
+if (!fs.existsSync(uploadDir)) {
+  fs.mkdirSync(uploadDir, { recursive: true });
+}
+
+// Configure Multer
+const storage = multer.diskStorage({
+  destination: (req, file, cb) => {
+    cb(null, uploadDir);
+  },
+  filename: (req, file, cb) => {
+    cb(null, Date.now() + path.extname(file.originalname));
+  }
+});
+
+// Add file filter to only allow mp3 files
+const fileFilter = (req, file, cb) => {
+  if (file.mimetype === 'audio/mpeg' || file.mimetype === 'audio/mp3') {
+    cb(null, true);
+  } else {
+    cb(new Error('Invalid file type. Only MP3 files are allowed.'), false);
+  }
+};
+
+const uploadSong = multer({
+  storage: storage,
+  fileFilter: fileFilter,
+  limits: {
+    fileSize: 5 * 1024 * 1024 // 5MB limit
+  }
+});
+
+// Modified upload route
+app.post('/upload-song', uploadSong.single('profile_song'), async (req, res) => {
+  if (!req.file) {
+    return res.status(400).send('No file uploaded or invalid file type');
+  }
+
+  const filePath = req.file.path;
+  const userId = req.session.user.user_id;
+
+  try {
+    const result = await db.one(
+        `INSERT INTO buffspace_main.profile_song (song_title, mp3_file_url)
+         VALUES ($1, $2)
+           RETURNING song_id`,
+        [
+          req.file.originalname.replace('.mp3', ''),
+          filePath
+        ]
+    );
+
+    const newSongId = result.song_id;
+
+    // Update the user's profile with the new song ID
+    await db.none(
+        `UPDATE buffspace_main.profile
+         SET song_id = $1
+         WHERE user_id = $2`,
+        [newSongId, userId]
+    );
+
+    res.redirect('/profile');
+  } catch (error) {
+    console.error('Error uploading song:', error);
+    // Delete the uploaded file if database operation fails
+    fs.unlink(filePath, (err) => {
+      if (err) console.error('Error deleting file:', err);
+    });
+    res.status(500).send('Error uploading song: ' + error.message);
+  }
+});
+
+
+const fetchMajors = async () => {
+  const query = 'SELECT * FROM buffspace_main.majors;';
+  return await db.any(query);
+};
+
 app.get('/profile/:username?', auth, async (req, res) => {
   const requestedUsername = req.params.username || req.session.user.username;
   const query = `
@@ -356,75 +341,6 @@ app.get('/profile/:username?', auth, async (req, res) => {
       });
 });
 
-// Show Create Profile Page
-app.get('/create-profile', auth, async (req, res) => {
-  const userId = req.session.user.user_id;
-  const query = `
-    SELECT * FROM buffspace_main.profile
-    WHERE user_id = $1
-  `;
-
-  try {
-    const profile = await db.oneOrNone(query, [userId]);
-    const majors = await fetchMajors(); // Fetch majors
-    if (profile) {
-      res.redirect('/profile');
-    } else {
-      res.render('pages/create-profile', {
-        user: req.session.user,
-        majors // Pass majors to the view
-      });
-    }
-  } catch (err) {
-    console.log(err);
-    res.redirect('/');
-  }
-});
-
-// Submit Profile Creation
-app.post('/create-profile', auth, async (req, res) => {
-  const userId = req.session.user.user_id;
-  const { major_id, ...profileData } = req.body;
-
-  try {
-    await db.tx(async t => {
-      // Insert profile
-      await t.none(`
-        INSERT INTO buffspace_main.profile
-        (user_id, first_name, last_name, graduation_year, bio, status)
-        VALUES ($1, $2, $3, $4, $5, $6)
-      `, [userId, profileData.first_name, profileData.last_name,
-          profileData.graduation_year, profileData.bio,
-          profileData.status]);
-
-      // Insert student_majors
-      if (major_id) {
-        await t.none(`
-          INSERT INTO buffspace_main.student_majors
-          (user_id, major_id)
-          VALUES ($1, $2)
-        `, [userId, major_id]);
-      }
-
-      // Add user id 1 as a friend to this user
-      await t.none(`
-        INSERT INTO buffspace_main.friend
-        (user_id_1, user_id_2, user_1_ranking, user_2_ranking)
-        VALUES ($1, $2, $3, $4)
-      `, [userId, 1, 1, 1]);
-    });
-
-    res.redirect('/profile');
-  } catch (error) {
-    console.error(error);
-    res.render('pages/create-profile', {
-      error: true,
-      message: 'Error creating profile'
-    });
-  }
-});
-
-//Show Edit Profile Page
 app.get('/edit-profile', auth, async (req, res) => {
   const userId = req.session.user.user_id;
   const query = `
@@ -452,7 +368,7 @@ app.get('/edit-profile', auth, async (req, res) => {
   }
 });
 
-//Submit Edit Profile
+// POST route to handle profile updates
 app.post('/edit-profile', auth, uploadSong.single('profile_song'), async (req, res) => {
   const userId = req.session.user.user_id;
   const { major_id, ...profileData } = req.body;
@@ -525,131 +441,132 @@ app.post('/edit-profile', auth, uploadSong.single('profile_song'), async (req, r
   }
 });
 
-//Upload Profile Song Route
-app.post('/upload-song', uploadSong.single('profile_song'), async (req, res) => {
-  if (!req.file) {
-    return res.status(400).send('No file uploaded or invalid file type');
-  }
 
-  const filePath = req.file.path;
+const profile = {
+  profile_id: undefined,
+  user_id: undefined,
+  bio: undefined,
+  profile_picture_url: undefined,
+  first_name: undefined,
+  last_name: undefined,
+  graduation_year: undefined,
+  major: undefined,
+  song_id: undefined,
+  status: undefined,
+  last_updated: undefined,
+};
+
+//SCAFFOLDING
+app.get('/create-profile', auth, async (req, res) => {
   const userId = req.session.user.user_id;
+  const query = `
+    SELECT * FROM buffspace_main.profile
+    WHERE user_id = $1
+  `;
 
   try {
-    const result = await db.one(
-        `INSERT INTO buffspace_main.profile_song (song_title, mp3_file_url)
-         VALUES ($1, $2)
-           RETURNING song_id`,
-        [
-          req.file.originalname.replace('.mp3', ''),
-          filePath
-        ]
-    );
+    const profile = await db.oneOrNone(query, [userId]);
+    const majors = await fetchMajors(); // Fetch majors
+    if (profile) {
+      res.redirect('/profile');
+    } else {
+      res.render('pages/create-profile', {
+        user: req.session.user,
+        majors // Pass majors to the view
+      });
+    }
+  } catch (err) {
+    console.log(err);
+    res.redirect('/');
+  }
+});
 
-    const newSongId = result.song_id;
+// Handle profile creation
+app.post('/create-profile', auth, async (req, res) => {
+  const userId = req.session.user.user_id;
+  const { major_id, ...profileData } = req.body;
 
-    // Update the user's profile with the new song ID
-    await db.none(
-        `UPDATE buffspace_main.profile
-         SET song_id = $1
-         WHERE user_id = $2`,
-        [newSongId, userId]
-    );
+  try {
+    await db.tx(async t => {
+      // Insert profile
+      await t.none(`
+        INSERT INTO buffspace_main.profile
+        (user_id, first_name, last_name, graduation_year, bio, status)
+        VALUES ($1, $2, $3, $4, $5, $6)
+      `, [userId, profileData.first_name, profileData.last_name,
+          profileData.graduation_year, profileData.bio,
+          profileData.status]);
+
+      // Insert student_majors
+      if (major_id) {
+        await t.none(`
+          INSERT INTO buffspace_main.student_majors
+          (user_id, major_id)
+          VALUES ($1, $2)
+        `, [userId, major_id]);
+      }
+
+      // Add user id 1 as a friend to this user
+      await t.none(`
+        INSERT INTO buffspace_main.friend
+        (user_id_1, user_id_2, user_1_ranking, user_2_ranking)
+        VALUES ($1, $2, $3, $4)
+      `, [userId, 1, 1, 1]);
+    });
 
     res.redirect('/profile');
   } catch (error) {
-    console.error('Error uploading song:', error);
-    // Delete the uploaded file if database operation fails
-    fs.unlink(filePath, (err) => {
-      if (err) console.error('Error deleting file:', err);
+    console.error(error);
+    res.render('pages/create-profile', {
+      error: true,
+      message: 'Error creating profile'
     });
-    res.status(500).send('Error uploading song: ' + error.message);
   }
 });
 
-// *****************************************************
-// <!-- Section 6.2 : Courses Routes -->
-// *****************************************************
+//SCAFFOLDING END
 
-// Display Courses Profile
-app.get('/courses-profile', auth, async (req, res) => {
-  const userId = req.session.user.user_id;
+// Helper function to build the post query based on filter
+const buildPostQuery = (filter, userId) => {
+  let baseQuery = `
+    SELECT po.user_id, content, image_url,
+           to_char(created_at, 'HH12:MI AM MM/DD/YYYY') AS created_at,
+           first_name, last_name, profile_picture_url
+    FROM buffspace_main.post po
+           JOIN buffspace_main.profile pr ON po.user_id = pr.user_id
+  `;
 
-  try {
-    // Get user's current courses
-    const userCoursesQuery = `
-      SELECT c.*
-      FROM buffspace_main.courses c
-      JOIN buffspace_main.student_courses sc ON c.course_id = sc.course_id
-      WHERE sc.user_id = $1
-      ORDER BY c.course_id;
-    `;
-
-    // Get available courses (not yet added by user)
-    const availableCoursesQuery = `
-      SELECT c.*
-      FROM buffspace_main.courses c
-      WHERE c.course_id NOT IN (
-        SELECT course_id
-        FROM buffspace_main.student_courses
-        WHERE user_id = $1
-      )
-      ORDER BY c.course_id;
-    `;
-
-    const [userCourses, availableCourses] = await Promise.all([
-      db.any(userCoursesQuery, [userId]),
-      db.any(availableCoursesQuery, [userId])
-    ]);
-
-    res.render('pages/courses-profile', {
-      userCourses,
-      availableCourses
-    });
-  } catch (error) {
-    console.error(error);
-    res.redirect('/profile');
+  switch (filter) {
+    case 'just-me':
+      baseQuery += ` WHERE po.user_id = ${userId}`;
+      break;
+    case 'friends':
+      baseQuery += `
+        WHERE po.user_id IN (
+          SELECT user_id_2
+          FROM buffspace_main.friend
+          WHERE user_id_1 = ${userId}
+        ) OR po.user_id = ${userId}
+      `;
+      break;
+    case 'all':
+      // No WHERE clause needed - show all posts
+      break;
+    default:
+      // Default to friends' posts if no valid filter
+      baseQuery += `
+        WHERE po.user_id IN (
+          SELECT user_id_2
+          FROM buffspace_main.friend
+          WHERE user_id_1 = ${userId}
+        ) OR po.user_id = ${userId}
+      `;
   }
-});
 
-// Add a Course
-app.post('/add-course', auth, async (req, res) => {
-  const userId = req.session.user.user_id;
-  const courseId = req.body.course_id;
+  return baseQuery + ' ORDER BY po.created_at DESC';
+};
 
-  try {
-    await db.none(
-      'INSERT INTO buffspace_main.student_courses (user_id, course_id) VALUES ($1, $2)',
-      [userId, courseId]
-    );
-    res.redirect('/courses-profile');
-  } catch (error) {
-    console.error(error);
-    res.redirect('/courses-profile');
-  }
-});
-
-// Remove a Course
-app.post('/remove-course', auth, async (req, res) => {
-  const userId = req.session.user.user_id;
-  const courseId = req.body.course_id;
-
-  try {
-    await db.none(
-      'DELETE FROM buffspace_main.student_courses WHERE user_id = $1 AND course_id = $2',
-      [userId, courseId]
-    );
-    res.redirect('/courses-profile');
-  } catch (error) {
-    console.error(error);
-    res.redirect('/courses-profile');
-  }
-});
-
-// *****************************************************
-// <!-- Section 7 : Homepage Routes -->
-// *****************************************************
-
-// Display Homepage Route
+// Update the homepage route to handle filters
 app.get('/homepage', async (req, res) => {
   if (!req.session.user) {
     return res.redirect('/login');
@@ -712,7 +629,6 @@ app.get('/homepage', async (req, res) => {
   }
 });
 
-//Post on Homepage
 app.post('/posts', auth, (req, res) => {
   const userId = req.session.user.user_id;
   const content = req.body.content;
@@ -734,11 +650,6 @@ app.post('/posts', auth, (req, res) => {
     });
 });
 
-// *****************************************************
-// <!-- Section 8 : BuffCircle/Friends Routes -->
-// *****************************************************
-
-//Display BuffCircle
 app.get('/buffcircle', auth, async (req, res) => {
   const userId = req.session.user.user_id;
 
@@ -835,25 +746,80 @@ app.get('/buffcircle', auth, async (req, res) => {
   }
 });
 
-//BuffCircle Add Friend
-app.post('/buffcircle/add_friend', auth, (req, res) => {
-  const user_id_1 = req.session.user.user_id;
-  const user_id_2 = req.body.user_id;
+app.get('/courses-profile', auth, async (req, res) => {
+  const userId = req.session.user.user_id;
 
-  const query = `INSERT INTO buffspace_main.friend (user_id_1, user_id_2) VALUES ($1, $2) RETURNING *`;
-  const values = [user_id_1, user_id_2];
+  try {
+    // Get user's current courses
+    const userCoursesQuery = `
+      SELECT c.*
+      FROM buffspace_main.courses c
+      JOIN buffspace_main.student_courses sc ON c.course_id = sc.course_id
+      WHERE sc.user_id = $1
+      ORDER BY c.course_id;
+    `;
 
-  db.one(query, values)
-    .then(() => {
-      res.redirect('/buffcircle');
-    })
-    .catch(err => {
-      console.log(err);
-      res.redirect('/buffcircle');
+    // Get available courses (not yet added by user)
+    const availableCoursesQuery = `
+      SELECT c.*
+      FROM buffspace_main.courses c
+      WHERE c.course_id NOT IN (
+        SELECT course_id
+        FROM buffspace_main.student_courses
+        WHERE user_id = $1
+      )
+      ORDER BY c.course_id;
+    `;
+
+    const [userCourses, availableCourses] = await Promise.all([
+      db.any(userCoursesQuery, [userId]),
+      db.any(availableCoursesQuery, [userId])
+    ]);
+
+    res.render('pages/courses-profile', {
+      userCourses,
+      availableCourses
     });
+  } catch (error) {
+    console.error(error);
+    res.redirect('/profile');
+  }
 });
 
-//Display Friends
+// Add a course
+app.post('/add-course', auth, async (req, res) => {
+  const userId = req.session.user.user_id;
+  const courseId = req.body.course_id;
+
+  try {
+    await db.none(
+      'INSERT INTO buffspace_main.student_courses (user_id, course_id) VALUES ($1, $2)',
+      [userId, courseId]
+    );
+    res.redirect('/courses-profile');
+  } catch (error) {
+    console.error(error);
+    res.redirect('/courses-profile');
+  }
+});
+
+// Remove a course
+app.post('/remove-course', auth, async (req, res) => {
+  const userId = req.session.user.user_id;
+  const courseId = req.body.course_id;
+
+  try {
+    await db.none(
+      'DELETE FROM buffspace_main.student_courses WHERE user_id = $1 AND course_id = $2',
+      [userId, courseId]
+    );
+    res.redirect('/courses-profile');
+  } catch (error) {
+    console.error(error);
+    res.redirect('/courses-profile');
+  }
+});
+
 app.get('/friends', async (req, res) => {
   try {
     const user = req.session.user;
@@ -874,7 +840,25 @@ app.get('/friends', async (req, res) => {
   }
 });
 
-//Friends Delete Friend
+app.post('/buffcircle/add_friend', auth, (req, res) => {
+  const user_id_1 = req.session.user.user_id;
+  const user_id_2 = req.body.user_id;
+
+  const query = `INSERT INTO buffspace_main.friend (user_id_1, user_id_2) VALUES ($1, $2) RETURNING *`;
+  const values = [user_id_1, user_id_2];
+
+  db.one(query, values)
+    .then(() => {
+      res.redirect('/buffcircle');
+    })
+    .catch(err => {
+      console.log(err);
+      res.redirect('/buffcircle');
+    });
+});
+  
+
+//delete friends
 app.post('/friends/delete_friend', auth, (req, res) => {
   const user_id_1 = req.session.user.user_id;
   const user_id_2 = req.body.user_id;
@@ -893,11 +877,7 @@ app.post('/friends/delete_friend', auth, (req, res) => {
     });
 });
 
-// *****************************************************
-// <!-- Section 9 : Chat Routes -->
-// *****************************************************
-
-// Display Chat Page
+// Initial chat page load
 app.get('/chat', auth, async (req, res) => {
   const userId = req.session.user.user_id;
   try {
@@ -944,7 +924,7 @@ app.get('/chat', auth, async (req, res) => {
   }
 });
 
-// Display Chat Page with specific friend selected
+// Chat page with specific friend selected
 app.get('/chat/:friendId', auth, async (req, res) => {
   const userId = req.session.user.user_id;
   try {
@@ -1059,10 +1039,6 @@ app.post('/api/messages', auth, async (req, res) => {
     res.status(500).json({ error: 'Error sending message' });
   }
 });
-
-// *****************************************************
-// <!-- Section 11 : Server Start-up -->
-// *****************************************************
 
 module.exports = app.listen(3000);
 console.log('Server is listening on port 3000');
