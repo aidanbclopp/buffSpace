@@ -20,31 +20,6 @@
                 <li><strong>Major:</strong> <span>{{profile.major_name}}</span></li>
                 <li><strong>Graduation Year:</strong> <span>{{profile.graduation_year}}</span></li>
                 <li><strong>Status:</strong> <span>{{profile.status}}</span></li>
-
-                <div class="form-group">
-                    <li><strong>Profile Song: </strong> <span>{{profile.song}}</span></li>
-                    <form action="/upload-song" method="POST" enctype="multipart/form-data" id="songUploadForm">
-                        <div class="upload-container">
-                            <input type="file"
-                                   id="profile_song"
-                                   name="mp3"
-                                   class="form-control"
-                                   accept="audio/mp3"
-                                   onchange="toggleUploadButton(this)">
-                            <button type="submit"
-                                    id="uploadButton"
-                                    style="display: none;"
-                                    class="upload-btn">
-                                Upload Song
-                            </button>
-                        </div>
-                        <div style="text-align: center;">
-                            <small class="form-text">Upload an MP3 file that will play on your profile.</small>
-                        </div>
-                    </form>
-
-                </div>
-
                 {{#if profile.song_url}}
                     <div class="profile-audio" style="display: flex; justify-content: center; align-items: center; text-align: center;">
                         <audio controls>

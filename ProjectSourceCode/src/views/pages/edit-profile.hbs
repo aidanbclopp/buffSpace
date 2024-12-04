@@ -3,7 +3,7 @@
     <div class="profile-content">
         <h1>Edit Profile</h1>
         
-        <form action="/edit-profile" method="POST" class="edit-form">
+        <form action="/edit-profile" method="POST" class="edit-form" enctype="multipart/form-data">
             <div class="form-group">
                 <label for="profile_picture_url">Profile Picture URL</label>
                 <input type="text" id="profile_picture_url" name="profile_picture_url" 
@@ -53,6 +53,21 @@
                     <option value="Alumni" {{#if (eq profile.status "Alumni")}}selected{{/if}}>Alumni</option>
                     <option value="On Leave" {{#if (eq profile.status "On Leave")}}selected{{/if}}>On Leave</option>
                 </select>
+            </div>
+
+            <div class="form-group">
+                <label for="profile_song">Profile Song</label>
+                <div class="upload-container">
+                    <input type="file"
+                           id="profile_song"
+                           name="profile_song"
+                           class="form-control"
+                           accept="audio/mp3">
+                    <small class="form-text">Upload an MP3 file that will play on your profile.</small>
+                </div>
+                {{#if profile.song}}
+                    <p class="current-song">Current song: {{profile.song}}</p>
+                {{/if}}
             </div>
 
             <div class="button-group"></div>

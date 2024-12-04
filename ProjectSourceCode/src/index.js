@@ -234,7 +234,7 @@ const fileFilter = (req, file, cb) => {
   }
 };
 
-const upload = multer({
+const uploadSong = multer({
   storage: storage,
   fileFilter: fileFilter,
   limits: {
@@ -243,7 +243,7 @@ const upload = multer({
 });
 
 // Modified upload route
-app.post('/upload-song', upload.single('mp3'), async (req, res) => {
+app.post('/upload-song', uploadSong.single('profile_song'), async (req, res) => {
   if (!req.file) {
     return res.status(400).send('No file uploaded or invalid file type');
   }
@@ -361,12 +361,28 @@ app.get('/edit-profile', auth, async (req, res) => {
 });
 
 // POST route to handle profile updates
-app.post('/edit-profile', auth, async (req, res) => {
+app.post('/edit-profile', auth, uploadSong.single('profile_song'), async (req, res) => {
   const userId = req.session.user.user_id;
   const { major_id, ...profileData } = req.body;
 
   try {
     await db.tx(async t => {
+      // Handle the song upload if a file was provided
+      if (req.file) {
+        const songResult = await t.one(
+          `INSERT INTO buffspace_main.profile_song (song_title, mp3_file_url)
+           VALUES ($1, $2)
+           RETURNING song_id`,
+          [
+            req.file.originalname.replace('.mp3', ''),
+            req.file.path
+          ]
+        );
+        
+        // Add song_id to profile update
+        profileData.song_id = songResult.song_id;
+      }
+
       // Update profile
       await t.none(`
         UPDATE buffspace_main.profile
@@ -376,7 +392,8 @@ app.post('/edit-profile', auth, async (req, res) => {
           graduation_year = $3,
           bio = $4,
           status = $5,
-          profile_picture_url = $6
+          profile_picture_url = $6,
+          song_id = COALESCE($8, song_id)
         WHERE user_id = $7
       `, [
         profileData.first_name,
@@ -385,7 +402,8 @@ app.post('/edit-profile', auth, async (req, res) => {
         profileData.bio,
         profileData.status,
         profileData.profile_picture_url,
-        userId
+        userId,
+        profileData.song_id
       ]);
 
       // Update student_majors (first remove old major, then add new one)
@@ -399,6 +417,12 @@ app.post('/edit-profile', auth, async (req, res) => {
     res.redirect('/profile');
   } catch (error) {
     console.error(error);
+    // If there was an uploaded file, delete it since the transaction failed
+    if (req.file) {
+      fs.unlink(req.file.path, (err) => {
+        if (err) console.error('Error deleting file:', err);
+      });
+    }
     const majors = await fetchMajors();
     res.render('pages/edit-profile', {
       error: true,
