@@ -641,6 +641,11 @@ app.get('/buffcircle', auth, async (req, res) => {
       user_major AS (
         SELECT major_id FROM buffspace_main.student_majors WHERE user_id = $1
       ),
+      existing_friends AS (
+        SELECT user_id_2 as friend_id FROM buffspace_main.friend WHERE user_id_1 = $1
+        UNION
+        SELECT user_id_1 as friend_id FROM buffspace_main.friend WHERE user_id_2 = $1
+      ),
       potential_matches AS (
         SELECT
           p.user_id,
@@ -658,12 +663,12 @@ app.get('/buffcircle', auth, async (req, res) => {
         LEFT JOIN buffspace_main.student_courses sc ON p.user_id = sc.user_id
         LEFT JOIN buffspace_main.courses c ON sc.course_id = c.course_id
         WHERE p.user_id != $1
+        AND p.user_id NOT IN (SELECT friend_id FROM existing_friends)
         AND (
           sc.course_id IN (SELECT course_id FROM user_courses)
           OR sm.major_id = (SELECT major_id FROM user_major)
         )
-        GROUP BY p.user_id, p.first_name, p.last_name, p.profile_picture_url,
-                 p.graduation_year, m.major_name, sm.major_id
+        GROUP BY p.user_id, p.first_name, p.last_name, p.profile_picture_url, p.graduation_year, m.major_name, sm.major_id
       )
       SELECT *,
         (common_course_count * 2 + same_major * 3) as match_score
@@ -679,7 +684,7 @@ app.get('/buffcircle', auth, async (req, res) => {
     res.render('pages/buffcircle', {
       userProfile,
       matches,
-      title: 'BuffCircle - Find Your Study Buddies'
+      title: 'BuffCircle'
     });
 
   } catch (error) {
@@ -779,6 +784,23 @@ app.get('/friends', async (req, res) => {
   }
 });
 
+app.post('/buffcircle/add_friend', auth, (req, res) => {
+  const user_id_1 = req.session.user.user_id;
+  const user_id_2 = req.body.user_id;
+
+  const query = `INSERT INTO buffspace_main.friend (user_id_1, user_id_2) VALUES ($1, $2) RETURNING *`;
+  const values = [user_id_1, user_id_2];
+
+  db.one(query, values)
+    .then(() => {
+      res.redirect('/buffcircle');
+    })
+    .catch(err => {
+      console.log(err);
+      res.redirect('/buffcircle');
+    });
+});
+  
 
 //delete friends
 app.post('/friends/delete_friend', auth, (req, res) => {

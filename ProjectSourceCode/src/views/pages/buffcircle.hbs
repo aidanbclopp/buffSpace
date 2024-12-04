@@ -66,7 +66,10 @@
                                         </div>
                                     </div>
                                 {{/if}}
-                                <a href="#" class="btn-primary">Connect</a>
+                                <form action="/buffcircle/add_friend" method="POST">
+                                    <input type="hidden" name="user_id" value="{{this.user_id}}">
+                                    <button type="submit" class="btn-primary">Add Friend</button>
+                                </form>
                             </div>
                         </div>
                     </div>
