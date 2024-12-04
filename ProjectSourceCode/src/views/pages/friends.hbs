@@ -7,7 +7,9 @@
           {{#each friends}}
             <div class="friend-card">
               <div class="friend-header">
-                <img src="{{this.profile_picture_url}}" class="avatar" onerror="this.onerror=null;this.src='https://e7.pngegg.com/pngimages/926/34/png-clipart-computer-icons-user-profile-avatar-avatar-face-heroes.png';">
+                <a href="/profile/{{this.username}}">
+                  <img src="{{this.profile_picture_url}}" class="avatar" onerror="this.onerror=null;this.src='https://e7.pngegg.com/pngimages/926/34/png-clipart-computer-icons-user-profile-avatar-avatar-face-heroes.png';">
+                </a>
                 <div class="friend-details">
                   <h3>{{this.first_name}} {{this.last_name}}</h3>
                   <p>{{this.status}}</p>
@@ -140,6 +142,15 @@
         border: none;
         border-radius: 5px;
         cursor: pointer;
+    }
+
+    .friend-header a {
+        cursor: pointer;
+        transition: opacity 0.2s;
+    }
+
+    .friend-header a:hover {
+        opacity: 0.8;
     }
 
     .avatar {
