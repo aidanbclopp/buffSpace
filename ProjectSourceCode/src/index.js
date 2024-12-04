@@ -497,6 +497,7 @@ app.get('/edit-profile', auth, async (req, res) => {
 });
 
 //Submit Edit Profile
+// This route handles the submission of the edit profile form
 app.post('/edit-profile', auth, uploadSong.single('profile_song'), async (req, res) => {
   // Extract the user ID from the session
   const userId = req.session.user.user_id;
@@ -504,26 +505,25 @@ app.post('/edit-profile', auth, uploadSong.single('profile_song'), async (req, r
   const { major_id, ...profileData } = req.body;
 
   try {
-    // Start a database transaction to handle multiple operations atomically
+    // Start a database transaction to ensure all operations are atomic
     await db.tx(async t => {
-      // Check if a song file was uploaded and handle it
+      // Handle the song upload if a file was provided
       if (req.file) {
-        // Insert the song into the database and get its ID
         const songResult = await t.one(
           `INSERT INTO buffspace_main.profile_song (song_title, mp3_file_url)
            VALUES ($1, $2)
            RETURNING song_id`,
           [
-            req.file.originalname.replace('.mp3', ''), // Remove .mp3 extension from the file name
-            req.file.path // Path to the uploaded file
+            req.file.originalname.replace('.mp3', ''),
+            req.file.path
           ]
         );
         
-        // Add the song ID to the profile data for updating
+        // Add song_id to profile update
         profileData.song_id = songResult.song_id;
       }
 
-      // Update the user's profile with the provided data
+      // Update profile
       await t.none(`
         UPDATE buffspace_main.profile
         SET
@@ -533,7 +533,7 @@ app.post('/edit-profile', auth, uploadSong.single('profile_song'), async (req, r
           bio = $4,
           status = $5,
           profile_picture_url = $6,
-          song_id = COALESCE($8, song_id) // Use the new song ID if provided, otherwise keep the existing one
+          song_id = COALESCE($8, song_id)
         WHERE user_id = $7
       `, [
         profileData.first_name,
@@ -546,7 +546,7 @@ app.post('/edit-profile', auth, uploadSong.single('profile_song'), async (req, r
         profileData.song_id
       ]);
 
-      // Update the user's major (first remove the old major, then add the new one)
+      // Update student_majors (first remove old major, then add new one)
       await t.none('DELETE FROM buffspace_main.student_majors WHERE user_id = $1', [userId]);
       if (major_id) {
         await t.none('INSERT INTO buffspace_main.student_majors (user_id, major_id) VALUES ($1, $2)',
@@ -564,9 +564,7 @@ app.post('/edit-profile', auth, uploadSong.single('profile_song'), async (req, r
         if (err) console.error('Error deleting file:', err);
       });
     }
-    // Fetch all available majors for the error page
     const majors = await fetchMajors();
-    // Render the edit-profile page with an error message if profile update fails
     res.render('pages/edit-profile', {
       error: true,
       message: 'Error updating profile',
