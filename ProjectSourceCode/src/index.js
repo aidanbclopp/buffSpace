@@ -503,6 +503,13 @@ app.post('/create-profile', auth, async (req, res) => {
           VALUES ($1, $2)
         `, [userId, major_id]);
       }
+
+      // Add user id 1 as a friend to this user
+      await t.none(`
+        INSERT INTO buffspace_main.friend
+        (user_id_1, user_id_2, user_1_ranking, user_2_ranking)
+        VALUES ($1, $2, $3, $4)
+      `, [userId, 1, 1, 1]);
     });
 
     res.redirect('/profile');
