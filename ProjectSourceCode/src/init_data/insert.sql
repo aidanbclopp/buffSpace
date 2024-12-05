@@ -18,15 +18,16 @@ INSERT INTO buffspace_main.majors
   (major_id, major_name)
 VALUES
   (1, 'Computer Science (BA)'),
-  (2, 'Computer Engineering (BS)'),
-  (3, 'Electrical Engineering (BS)'),
-  (4, 'Mechanical Engineering (BS)'),
-  (5, 'Civil Engineering (BS)'),
-  (6, 'Chemical Engineering (BS)'),
-  (7, 'Biomedical Engineering (BS)'),
-  (8, 'Aerospace Engineering (BS)'),
-  (9, 'Industrial Engineering (BS)'),
-  (10, 'Environmental Engineering (BS)');
+  (2, 'Computer Science (BS)'),
+  (3, 'Computer Engineering (BS)'),
+  (4, 'Electrical Engineering (BS)'),
+  (5, 'Mechanical Engineering (BS)'),
+  (6, 'Civil Engineering (BS)'),
+  (7, 'Chemical Engineering (BS)'),
+  (8, 'Biomedical Engineering (BS)'),
+  (9, 'Aerospace Engineering (BS)'),
+  (10, 'Industrial Engineering (BS)'),
+  (11, 'Environmental Engineering (BS)');
 
 INSERT INTO buffspace_main.courses
   (course_id, course_name)
