@@ -127,28 +127,6 @@
         document.getElementById('seconds').querySelector('.top').textContent = seconds;
         document.getElementById('seconds').querySelector('.bottom').textContent = seconds;
         document.getElementById('am-pm').textContent = amPm;
-
-        if (seconds === '00') {
-            document.getElementById('minutes').classList.add('flip');
-            setTimeout(() => {
-                document.getElementById('seconds').classList.add('flip');
-            }, 200);
-
-            if (minutes === '00') {
-                document.getElementById('hours').classList.add('flip');
-            }
-
-            setTimeout(() => {
-                document.getElementById('minutes').classList.remove('flip');
-                document.getElementById('minutes').classList.add('flip-back');
-                document.getElementById('seconds').classList.remove('flip');
-                document.getElementById('seconds').classList.add('flip-back');
-                if (minutes === '00') {
-                    document.getElementById('hours').classList.remove('flip');
-                    document.getElementById('hours').classList.add('flip-back');
-                }
-            }, 1000);
-        }
     }
 
     setInterval(updateClock, 1000);
