@@ -742,9 +742,9 @@ app.get('/homepage', async (req, res) => {
 
     // Query to get the user's top 8 friends based on ranking
     const selectFriends = `
-      SELECT f.user_id_2, user_2_ranking, first_name, last_name, profile_picture_url
-      FROM buffspace_main.friend f, buffspace_main.profile pr
-      WHERE f.user_id_1 = ${user.user_id} AND f.user_id_2 = pr.user_id
+      SELECT u.username, f.user_id_2, user_2_ranking, first_name, last_name, profile_picture_url
+      FROM buffspace_main.friend f, buffspace_main.profile pr, buffspace_main.user u
+      WHERE f.user_id_1 = ${user.user_id} AND f.user_id_2 = pr.user_id AND pr.user_id = u.user_id
       ORDER BY user_2_ranking DESC LIMIT 8;
     `;
     const topFriends = await db.any(selectFriends);
