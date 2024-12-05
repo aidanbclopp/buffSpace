@@ -424,11 +424,11 @@ app.post('/create-profile', auth, async (req, res) => {
       // Insert the user's profile into the database
       await t.none(`
         INSERT INTO buffspace_main.profile
-        (user_id, first_name, last_name, graduation_year, bio, status)
-        VALUES ($1, $2, $3, $4, $5, $6)
+        (user_id, first_name, last_name, graduation_year, bio, status, profile_picture_url)
+        VALUES ($1, $2, $3, $4, $5, $6, $7)
       `, [userId, profileData.first_name, profileData.last_name,
           profileData.graduation_year, profileData.bio,
-          profileData.status]);
+          profileData.status, profileData.profile_picture_url]);
 
       // If a major_id is provided, insert the student's major into the database
       if (major_id) {
